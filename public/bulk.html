@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R6Checker — Bulk account checker</title>
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    :root{
+      --brand:#3a8dff; --brand-soft:#5aa3ff;
+      --bg:#080b14; --bg-card:#111827; --bg-card-hov:#141d31;
+      --border:#1e2842; --border-bright:#2c3a5e;
+      --text:#e7ecf6; --text-dim:#8593ad;
+      --ok:#34d399; --warn:#ffb13a; --err:#f87171;
+    }
+    body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;
+         min-height:100vh;margin:0;padding:1.5rem 1rem;}
+    body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background-repeat:no-repeat;background-position:center top;background-size:cover;
+      background-image:linear-gradient(180deg,rgba(8,11,20,.9),rgba(8,11,20,.95) 58%,var(--bg) 88%),
+        radial-gradient(900px circle at 50% -10%,rgba(58,141,255,.10),transparent 60%),
+        url('/img/ayanokoji/hero-1280.webp');}
+    .wrap{max-width:880px;margin:0 auto;}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;}
+    .topbar a{color:var(--text-dim);text-decoration:none;font-size:.88rem;}
+    .topbar a:hover{color:var(--brand-soft);}
+    h1{font-size:1.8rem;font-weight:800;margin:.2rem 0 .3rem;letter-spacing:-.02em;}
+    h1 .dot{color:#cad3dc;}
+    .lede{color:var(--text-dim);font-size:.9rem;margin:0 0 1.2rem;line-height:1.55;}
+    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+          padding:1.3rem;margin-bottom:1.2rem;}
+    label{display:block;font-size:.78rem;color:var(--text-dim);text-transform:uppercase;
+          letter-spacing:.05em;margin-bottom:.4rem;}
+    textarea{width:100%;min-height:240px;background:var(--bg);border:1px solid var(--border);
+             color:var(--text);border-radius:8px;padding:.7rem;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+             font-size:.88rem;line-height:1.45;outline:none;box-sizing:border-box;resize:vertical;}
+    textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(58,141,255,.15);}
+    .upload-row{display:flex;gap:.7rem;align-items:center;margin-top:.8rem;flex-wrap:wrap;}
+    .file-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem .9rem;
+              background:transparent;border:1px solid var(--border-bright);color:var(--text);
+              border-radius:6px;font-size:.85rem;cursor:pointer;}
+    .file-btn:hover{background:var(--bg-card-hov);}
+    input[type=file]{display:none;}
+    .stats{flex:1;color:var(--text-dim);font-size:.85rem;text-align:right;}
+    .stats b{color:var(--text);}
+    .stats .cost{color:var(--brand-soft);}
+    .stats .insuff{color:var(--err);}
+    .actions{display:flex;gap:.7rem;margin-top:1rem;flex-wrap:wrap;}
+    .btn{padding:.7rem 1.3rem;background:var(--brand);color:#fff;border:none;border-radius:6px;
+         font-weight:600;font-size:.95rem;cursor:pointer;}
+    .btn:hover{background:var(--brand-soft);}
+    .btn:disabled{opacity:.4;cursor:not-allowed;}
+    .btn.alt{background:transparent;border:1px solid var(--border-bright);color:var(--text);}
+    .btn.alt:hover{background:var(--bg-card-hov);}
+    .btn.danger{background:transparent;border:1px solid var(--err);color:var(--err);}
+    .btn.danger:hover{background:rgba(248,113,113,.1);}
+    /* ── Checking-mode / BYO panel ── */
+    .mode-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+    .mode-opts{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0 0;}
+    .mode-opt{display:flex;align-items:center;gap:.5rem;padding:.55rem .8rem;border:1px solid var(--border-bright);
+              border-radius:8px;cursor:pointer;font-size:.85rem;color:var(--text);transition:.15s;flex:1;min-width:200px;}
+    .mode-opt:hover{background:var(--bg-card-hov);}
+    .mode-opt input{accent-color:var(--brand);margin:0;}
+    .mode-opt.sel{border-color:var(--brand);background:rgba(58,141,255,.08);}
+    .mode-opt .sub{color:var(--text-dim);font-size:.78rem;}
+    .byo-panel{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
+    .byo-status{display:inline-flex;align-items:center;gap:.45rem;padding:.4rem .7rem;border-radius:999px;
+                font-size:.82rem;font-weight:500;line-height:1;}
+    .byo-status.inactive{background:rgba(248,113,113,.12);color:var(--err);border:1px solid rgba(248,113,113,.3);}
+    .byo-status.active{background:rgba(52,211,153,.1);color:var(--ok);border:1px solid rgba(52,211,153,.3);}
+    .plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin:.8rem 0 1rem;}
+    @media(max-width:560px){.plan-grid{grid-template-columns:1fr;}}
+    @media(max-width:640px){
+      body{padding:1rem .8rem;}
+      .wrap{max-width:100%;}
+      .card{padding:1rem;border-radius:10px;}
+      h1{font-size:1.5rem;}
+      .mode-opt{min-width:0;flex:1 1 100%;}
+      .actions{gap:.5rem;}
+      .actions .btn{flex:1 1 100%;}
+      textarea{min-height:180px;}
+      /* Topbar: links drop to a tidy wrapping row under the Home link. */
+      .topbar{flex-wrap:wrap;gap:.4rem .9rem;margin-bottom:1rem;}
+      .topbar>div{display:flex;flex-wrap:wrap;gap:.3rem .9rem;width:100%;}
+      .topbar>div a{margin-right:0 !important;font-size:.85rem;}
+      /* Per-account balance line wraps under its label instead of squeezing. */
+      .stats{text-align:left;flex:1 1 100%;}
+      .upload-row{gap:.5rem;}
+      .file-btn{flex:1 1 100%;justify-content:center;}
+    }
+    /* 16px inputs stop iOS Safari auto-zooming on focus. */
+    @media(max-width:640px){ textarea,input{font-size:16px;} }
+    .plan-card{display:flex;flex-direction:column;align-items:flex-start;gap:.15rem;padding:.8rem .9rem;
+               background:var(--bg);border:1px solid var(--border-bright);border-radius:10px;cursor:pointer;
+               color:var(--text);text-align:left;transition:.15s;}
+    .plan-card:hover{border-color:var(--brand);background:var(--bg-card-hov);transform:translateY(-1px);}
+    .plan-card:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    .plan-card .pname{font-size:.82rem;text-transform:capitalize;color:var(--text-dim);}
+    .plan-card .pprice{font-size:1.15rem;font-weight:700;color:var(--text);}
+    .plan-card .pper{font-size:.74rem;color:var(--brand-soft);}
+    .plan-card .pdeal{font-size:.68rem;color:var(--ok);}
+    .proxy-actions{display:flex;align-items:center;gap:.8rem;margin-top:.6rem;}
+    .proxy-meta{color:var(--text-dim);font-size:.82rem;}
+    .field-label{display:flex;align-items:baseline;justify-content:space-between;gap:.5rem;}
+    .field-label .hint{text-transform:none;font-size:.74rem;color:var(--text-dim);letter-spacing:0;}
+
+    .progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:.7rem 0;}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-soft));
+                   transition:width .3s ease;width:0%;}
+    .live{background:var(--bg);border:1px solid var(--border);border-radius:8px;
+          padding:.7rem;max-height:340px;overflow:auto;
+          font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;
+          line-height:1.5;color:var(--text);white-space:pre;}
+    .live .ok  {color:var(--ok);font-weight:600;}        /* clean valid → green */
+    .live .vwi {color:#ffd166;font-weight:700;background:rgba(255,209,102,.08);} /* high-value → bright gold */
+    .live .twofa{color:#b07a3c;}                          /* needs 2FA code → muted amber, recedes */
+    .live .bad {color:var(--err);}                        /* banned / invalid → red */
+    .live .skip{color:var(--text-dim);}
+    .live-head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-top:1rem;flex-wrap:wrap;}
+    .hit-counter{display:flex;gap:.4rem;flex-wrap:wrap;font-size:.78rem;}
+    .hit-counter .chip{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .55rem;border-radius:999px;
+      background:var(--bg);border:1px solid var(--border);color:var(--text-dim);font-variant-numeric:tabular-nums;}
+    .hit-counter .chip b{color:var(--text);}
+    .hit-counter .chip.hit b{color:var(--ok);}
+    .hit-counter .chip.vwi b{color:var(--warn);}
+    .hit-counter .chip.banned b{color:var(--err);}
+    .summary{color:var(--text-dim);font-size:.88rem;line-height:1.55;margin:.7rem 0;}
+    .summary b{color:var(--text);}
+    .err-msg{color:var(--err);font-size:.88rem;margin-top:.7rem;min-height:1em;}
+    .warn-msg{color:var(--warn);font-size:.88rem;margin-top:.7rem;min-height:1em;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a href="/">← Home</a>
+      <div>
+        <a href="/download" style="margin-right:1rem">⬇ Desktop app</a>
+        <a href="/marketplace" style="margin-right:1rem">🛒 Marketplace</a>
+        <a href="/account" style="margin-right:1rem">My account</a>
+        <a href="#" id="logout">Sign out</a>
+      </div>
+    </div>
+
+    <h1>Bulk checker<span class="dot">.</span></h1>
+    <p class="lede">
+      Paste a list of <code style="color:var(--brand-soft)">email:password</code> lines, or upload a <code style="color:var(--brand-soft)">.txt</code> file.
+      Each definitive check (success or wrong-password) is billed per the volume tier below.
+      2FA / anti-bot / network failures are free. Max <b id="max-tag">—</b> accounts per job.
+    </p>
+    <div id="tier-table" style="margin:.2rem 0 .6rem;"></div>
+    <span id="price-tag" style="display:none"></span>
+
+    <div class="card" id="mode-card">
+      <label>Checking mode</label>
+      <div class="mode-opts">
+        <label class="mode-opt sel" id="opt-server">
+          <input type="radio" name="mode" value="server" checked>
+          <span>Server proxies <span class="sub">· pay per check</span></span>
+        </label>
+        <label class="mode-opt" id="opt-byo">
+          <input type="radio" name="mode" value="byo">
+          <span>My own proxies <span class="sub">· free with access pass</span></span>
+        </label>
+      </div>
+      <div id="byo-panel" class="byo-panel" style="display:none;">
+        <span class="byo-status inactive" id="sub-status">Checking access…</span>
+        <!-- Payment method for buying an access pass. 'crypto' default; 'card' → Whop. -->
+        <div style="margin:.4rem 0 .6rem;display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem">
+          <label style="display:flex;gap:.35rem;align-items:center;cursor:pointer">
+            <input type="radio" name="sub-provider" value="crypto" checked> Crypto (NOWPayments)
+          </label>
+          <label style="display:flex;gap:.35rem;align-items:center;cursor:pointer">
+            <input type="radio" name="sub-provider" value="card"> Card / Apple Pay / Google Pay (Whop)
+          </label>
+        </div>
+        <div class="plan-grid" id="plan-buttons"></div>
+        <div class="field-label">
+          <label style="margin:0;">Your proxies</label>
+          <span class="hint">one per line — host:port · host:port:user:pass · user:pass@host:port</span>
+        </div>
+        <textarea id="byo-proxies" placeholder="proxy.example.com:8000:user:pass" style="min-height:90px;margin-top:.4rem;"></textarea>
+        <div class="proxy-actions">
+          <button class="btn alt" id="save-proxies-btn">Save proxies</button>
+          <span class="proxy-meta" id="proxies-count">0 saved</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="input-card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <label for="accounts">Accounts (email:password, one per line)</label>
+        <div class="stats" id="balance-line">Balance: <b>$—</b></div>
+      </div>
+      <textarea id="accounts" placeholder="example@email.com:examplepassword&#10;another@email.com:anotherpassword"></textarea>
+      <div class="upload-row">
+        <label for="file" class="file-btn">📁 Upload .txt file</label>
+        <input type="file" id="file" accept=".txt,text/plain">
+        <div class="stats" id="parse-line">No lines parsed yet.</div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="start-btn" disabled>Start check</button>
+        <button class="btn alt" id="clear-btn">Clear</button>
+      </div>
+      <div class="err-msg" id="err"></div>
+    </div>
+
+    <div class="card" id="job-card" style="display:none">
+      <label>Job progress</label>
+      <div class="summary" id="job-summary">Starting…</div>
+      <div class="progress-bar"><div class="progress-fill" id="job-fill"></div></div>
+      <div class="actions" style="margin-top:.3rem">
+        <button class="btn" id="download-btn" disabled>Download all (.txt)</button>
+        <button class="btn" id="download-valid-btn" disabled>Valid only</button>
+        <button class="btn" id="download-vwi-btn" disabled title="Valid accounts with a wanted item or a Plat–Champ rank">VWI only</button>
+        <button class="btn" id="download-invalid-btn" disabled>Invalid only</button>
+        <button class="btn" id="download-banned-btn" disabled title="Banned accounts (Banned: Y) — kept out of Valid; sort these into Banned VWI">Banned only</button>
+        <button class="btn" id="download-unchecked-btn" disabled title="Accounts from your uploaded list that were never checked (e.g. job stopped early) — re-run these">Unchecked</button>
+        <button class="btn" id="resume-btn" disabled title="Start a new job for the accounts that weren't checked">Resume remaining</button>
+        <button class="btn danger" id="cancel-btn">Stop job</button>
+        <input type="file" id="unchecked-orig-file" accept=".txt,text/plain" style="display:none">
+      </div>
+      <div class="warn-msg" id="job-warn"></div>
+      <div class="live-head">
+        <label style="margin:0">Live hits</label>
+        <div class="hit-counter" id="hit-counter"></div>
+      </div>
+      <div class="live" id="live"></div>
+    </div>
+  </div>
+
+  <script>
+    let me = null;
+    let cfg = { priceCents: 25, minDepositUsd: 20, maxAccounts: 500 };
+    let parsed = 0;
+    let currentJob = null;
+    let pollTimer = null;
+
+    // Whole-job cost (cents) using the marginal sub-cent brackets — matches the
+    // server's up-front charge. The first checks cost more, later ones get
+    // cheaper, so the total always rises with size (can't be gamed).
+    function jobCostCents(n) {
+      const br = (cfg.pricingBrackets || []);
+      if (!br.length) return Math.max(1, n * (cfg.priceCents || 2));
+      let cost = 0, prev = 0;
+      for (const b of br) {
+        const upTo = (b.upTo == null) ? Infinity : b.upTo;
+        if (n <= prev) break;
+        cost += (Math.min(n, upTo) - prev) * b.usd;
+        prev = upTo;
+      }
+      return n > 0 ? Math.max(1, Math.ceil(cost * 100)) : 0;
+    }
+    async function loadConfig() {
+      try {
+        cfg = await (await fetch('/api/config')).json();
+      } catch {}
+      // Show the cheapest (highest-volume) and base price as a teaser.
+      const tiers = (cfg.pricingTiers || []).slice().sort((a,b)=>a.min-b.min);
+      document.getElementById('price-tag').textContent = '$' + cfg.pricePerCheckUsd.toFixed(2);
+      document.getElementById('max-tag').textContent = Number(cfg.maxAccounts).toLocaleString();
+      // Render example job costs (marginal brackets → billed once per job).
+      const tt = document.getElementById('tier-table');
+      if (tt && (cfg.pricingBrackets || []).length) {
+        const examples = [1000, 10000, 100000, 1000000];
+        const chip = (lbl, val) => `<span style="display:inline-block;margin:.15rem .4rem .15rem 0;padding:.15rem .5rem;background:var(--bg);border:1px solid var(--border-bright);border-radius:4px;font-size:.72rem;">${lbl}: <b style="color:var(--brand-soft)">$${val}</b></span>`;
+        tt.innerHTML = examples.map(n => chip((n>=1e6?(n/1e6)+'M':(n/1e3)+'k'), (jobCostCents(n)/100).toFixed(2))).join('')
+          + `<span style="font-size:.68rem;color:var(--text-dim)">billed once per job · cheaper the bigger the job</span>`;
+      }
+    }
+
+    function fmtMoney(c){ return '$' + (c/100).toFixed(2); }
+
+    async function loadMe() {
+      const r = await fetch('/api/auth/me');
+      const { user } = await r.json();
+      if (!user) { location.href = '/account/login?next=/bulk'; return; }
+      me = user;
+      document.getElementById('balance-line').innerHTML = user.isOwner
+        ? `<b style="color:var(--ok)">Owner — free checks</b>`
+        : `Balance: <b>${fmtMoney(user.balanceCents)}</b>`;
+      // Update the max-accounts display now that we know if this is an owner.
+      document.getElementById('max-tag').textContent = Number(effectiveMax()).toLocaleString();
+      updateParseLine();
+    }
+
+    function countLines(text) {
+      const lines = text.split(/\r?\n/);
+      const seen = new Set();
+      let n = 0;
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line || line.startsWith('#')) continue;
+        const colon = line.indexOf(':');
+        if (colon < 1 || colon === line.length - 1) continue;
+        const email = line.slice(0, colon).toLowerCase();
+        if (!email || seen.has(email)) continue;
+        seen.add(email);
+        n++;
+        if (n >= effectiveMax()) break;
+      }
+      return n;
+    }
+    // Owners get the higher cap (ownerMaxAccounts); everyone else maxAccounts.
+    function effectiveMax() {
+      return (me && me.isOwner && cfg.ownerMaxAccounts) ? cfg.ownerMaxAccounts : (cfg.maxAccounts || 1000000);
+    }
+
+    // Large uploads are STREAMED from the File on submit — never read into a JS
+    // string (a ~300MB string + its JSON.stringify copy OOMs the tab). Small
+    // pastes/files use the textarea. fileObj (when set) is streamed instead.
+    let fileText = null;   // small-file text path
+    let fileObj = null;    // large file: streamed on submit, never fully in memory
+    let fileLineCount = 0;
+    function currentInput() { return fileText != null ? fileText : document.getElementById('accounts').value; }
+    function currentCount() { return fileObj ? fileLineCount : countLines(currentInput()); }
+
+    // Count non-empty, non-comment lines by streaming the File in ~MB chunks so
+    // a multi-hundred-MB file never lands in memory all at once.
+    async function countFileLines(file) {
+      const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader();
+      const cap = effectiveMax();
+      let count = 0, tail = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const s = tail + value;
+        let start = 0;
+        for (let i = 0; i < s.length; i++) {
+          if (s.charCodeAt(i) === 10) {
+            const ln = s.slice(start, i).trim();
+            if (ln && ln[0] !== '#') { if (++count >= cap) { try { await reader.cancel(); } catch {} return count; } }
+            start = i + 1;
+          }
+        }
+        tail = s.slice(start);
+      }
+      const last = tail.trim();
+      if (last && last[0] !== '#') count++;
+      return count;
+    }
+
+    // Remember the exact input submitted for the current job, so "Unchecked"
+    // can diff it against the results without re-uploading (same session).
+    let lastJobInput = null, lastJobInputJobId = null;
+
+    function updateParseLine() {
+      parsed = currentCount();
+      const el = document.getElementById('parse-line');
+      if (parsed === 0) {
+        el.innerHTML = 'No lines parsed yet.';
+        document.getElementById('start-btn').disabled = true;
+        return;
+      }
+      // Owners check for free — never show a cost or block on balance.
+      if (me && me.isOwner) {
+        el.innerHTML = `<b>${parsed.toLocaleString()}</b> account${parsed===1?'':'s'} · <span class="cost">free (owner)</span>`;
+        document.getElementById('start-btn').disabled = !me;
+        return;
+      }
+      // BYO-proxy mode is covered by the access pass (fixed fee) — never bill
+      // per check or block on balance here. The server enforces the pass.
+      if (document.querySelector('input[name=mode]:checked')?.value === 'byo') {
+        el.innerHTML = `<b>${parsed.toLocaleString()}</b> account${parsed===1?'':'s'} · <span class="cost">free with your access pass (your proxies)</span>`;
+        document.getElementById('start-btn').disabled = !me;
+        return;
+      }
+      const cost = jobCostCents(parsed);
+      const insuff = me && cost > me.balanceCents;
+      el.innerHTML = `<b>${parsed.toLocaleString()}</b> account${parsed===1?'':'s'} · total <span class="cost">${fmtMoney(cost)}</span> <span style="color:var(--text-dim);font-size:.85em">(billed once · refunded if stopped early)</span>${insuff?' <span class="insuff">— exceeds your balance</span>':''}`;
+      document.getElementById('start-btn').disabled = insuff || !me;
+    }
+
+    // Typing in the textarea takes over from any uploaded file.
+    document.getElementById('accounts').addEventListener('input', () => { fileText = null; fileObj = null; updateParseLine(); });
+
+    document.getElementById('file').addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      document.getElementById('err').textContent = '';
+      // Up to 400MB (~5–10M accounts). Server body limit is 768MB; we cap the
+      // file here so the in-browser JSON.stringify stays under V8's ~512MB
+      // string limit. (~1M accounts ≈ 40MB · 5M ≈ 200MB.)
+      const MAX = 400 * 1024 * 1024;
+      if (f.size > MAX) { document.getElementById('err').textContent = 'File too large (max 400MB ≈ 10M accounts).'; return; }
+      const ta = document.getElementById('accounts');
+      // Small files go in the textarea so they're editable; LARGE files keep only
+      // the File handle and are STREAMED on submit (never read into a JS string,
+      // which is what crashed the tab on big uploads).
+      if (f.size > 1024 * 1024) {
+        fileObj = f; fileText = null;
+        ta.setAttribute('readonly', 'readonly');
+        ta.value = `[ Reading "${f.name}" (${(f.size/1048576).toFixed(1)} MB)… ]`;
+        try { fileLineCount = await countFileLines(f); }
+        catch { fileLineCount = Math.round(f.size / 40); }   // fallback estimate
+        ta.value = `[ ${fileLineCount.toLocaleString()} accounts · "${f.name}" (${(f.size/1048576).toFixed(1)} MB) ]\n[ Streamed on Start — clear to paste manually instead ]`;
+      } else {
+        fileObj = null; fileText = null;
+        ta.removeAttribute('readonly');
+        ta.value = await f.text();
+      }
+      updateParseLine();
+    });
+
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      fileText = null;
+      const ta = document.getElementById('accounts');
+      ta.removeAttribute('readonly');
+      ta.value = '';
+      document.getElementById('file').value = '';
+      updateParseLine();
+      document.getElementById('err').textContent = '';
+    });
+
+    // Split a big File into <100MB chunks, POST each (appended server-side), then
+    // finalize via /api/bulk/start with the uploadId. Gets past Cloudflare's cap.
+    async function chunkedUpload(file, byoProxy) {
+      const uploadId = ((self.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random())).replace(/[^a-z0-9]/gi, '').slice(0, 48);
+      const CHUNK = 80 * 1024 * 1024;
+      const total = Math.ceil(file.size / CHUNK) || 1;
+      const pl = document.getElementById('parse-line');
+      for (let seq = 0; seq < total; seq++) {
+        const blob = file.slice(seq * CHUNK, Math.min(file.size, (seq + 1) * CHUNK));
+        const cr = await fetch('/api/bulk/upload-chunk?id=' + uploadId + '&seq=' + seq, {
+          method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: blob,
+        });
+        if (!cr.ok) { const j = await cr.json().catch(() => ({})); throw new Error(j.error || ('chunk ' + (seq + 1) + '/' + total + ' failed — HTTP ' + cr.status)); }
+        if (pl) pl.textContent = 'Uploading… ' + Math.round((seq + 1) / total * 100) + '%';
+      }
+      return fetch('/api/bulk/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uploadId, byoProxy }) });
+    }
+
+    document.getElementById('start-btn').addEventListener('click', async () => {
+      document.getElementById('err').textContent = '';
+      document.getElementById('start-btn').disabled = true;
+      try {
+        const byoProxy = document.querySelector('input[name=mode]:checked')?.value === 'byo';
+        let r;
+        if (fileObj) {
+          // Cloudflare caps a single request body at ~100MB. Big files are split
+          // into <100MB chunks; smaller ones stream as one text/plain body. Both
+          // avoid building a giant JS string (which OOM'd the tab).
+          if (fileObj.size > 90 * 1024 * 1024) {
+            r = await chunkedUpload(fileObj, byoProxy);
+          } else {
+            r = await fetch('/api/bulk/start?byo=' + (byoProxy ? 1 : 0), {
+              method:'POST', headers:{'Content-Type':'text/plain'}, body: fileObj,
+            });
+          }
+          lastJobInput = null; lastJobInputJobId = null;   // server computes Unchecked from stored input
+        } else {
+          const input = currentInput();
+          r = await fetch('/api/bulk/start', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ input, byoProxy }),
+          });
+          lastJobInput = input;
+        }
+        const data = await r.json();
+        if (!r.ok) {
+          let msg = data.error || 'Failed to start.';
+          if (data.needed_cents != null) msg += ` (needed ${fmtMoney(data.needed_cents)}, have ${fmtMoney(data.have_cents)})`;
+          document.getElementById('err').textContent = msg;
+          document.getElementById('start-btn').disabled = false;
+          return;
+        }
+        currentJob = data.jobId;
+        lastJobInputJobId = data.jobId;   // lastJobInput already set per-path above
+        document.getElementById('job-card').style.display = 'block';
+        document.getElementById('input-card').style.display = 'none';
+        document.getElementById('live').textContent = '';
+        startPolling();
+      } catch (e) {
+        document.getElementById('err').textContent = 'Network error: ' + e.message;
+        document.getElementById('start-btn').disabled = false;
+      }
+    });
+
+    // ── BYO-proxy: mode toggle, proxies, subscription ──────────────────────
+    function fmtLeft(ms){ const d=Math.floor(ms/86400000); const h=Math.floor((ms%86400000)/3600000); return d>0?`${d}d ${h}h`:`${h}h`; }
+    async function loadByo() {
+      try {
+        const d = await (await fetch('/api/proxies')).json();
+        document.getElementById('byo-proxies').value = (d.proxies||[]).join('\n');
+        document.getElementById('proxies-count').textContent = (d.proxies||[]).length + ' saved';
+        const s = d.subscription || {};
+        const plans = d.plans || {};
+        const statusEl = document.getElementById('sub-status');
+        if (s.active) {
+          statusEl.className = 'byo-status active';
+          statusEl.textContent = `● Access active — ${s.plan}, ${fmtLeft(s.msLeft)} left · your checks are free`;
+        } else {
+          statusEl.className = 'byo-status inactive';
+          statusEl.textContent = '● No active access — buy a pass to run checks with your own proxies for free';
+        }
+        const dayRate = plans.daily ? plans.daily.usd : null;
+        const pb = document.getElementById('plan-buttons'); pb.innerHTML = '';
+        for (const [id, p] of Object.entries(plans)) {
+          const b = document.createElement('button');
+          b.className = 'plan-card';
+          const saved = (dayRate && p.days > 1) ? Math.round((1 - p.usd / (dayRate * p.days)) * 100) : 0;
+          b.innerHTML =
+            `<span class="pname">${id}</span>` +
+            `<span class="pprice">$${p.usd}</span>` +
+            `<span class="pper">${p.days} day${p.days > 1 ? 's' : ''}</span>` +
+            (saved > 0 ? `<span class="pdeal">save ${saved}%</span>` : '');
+          b.onclick = async () => {
+            b.disabled = true;
+            const provider = (document.querySelector('input[name="sub-provider"]:checked') || {}).value || 'crypto';
+            try {
+              const r = await fetch('/api/subscription/buy', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ plan:id, provider }) });
+              const j = await r.json();
+              if (j.invoiceUrl) window.open(j.invoiceUrl, '_blank');
+              else document.getElementById('err').textContent = j.error || 'Could not start payment.';
+            } catch(e){ document.getElementById('err').textContent = 'Network error: '+e.message; }
+            b.disabled = false;
+          };
+          pb.appendChild(b);
+        }
+      } catch {}
+    }
+    document.querySelectorAll('input[name=mode]').forEach(r => r.addEventListener('change', () => {
+      const byo = document.querySelector('input[name=mode]:checked').value === 'byo';
+      document.getElementById('byo-panel').style.display = byo ? 'block' : 'none';
+      document.getElementById('opt-byo').classList.toggle('sel', byo);
+      document.getElementById('opt-server').classList.toggle('sel', !byo);
+      updateParseLine();
+    }));
+    document.getElementById('save-proxies-btn').addEventListener('click', async () => {
+      const proxies = document.getElementById('byo-proxies').value;
+      try {
+        const r = await fetch('/api/proxies', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ proxies }) });
+        const j = await r.json();
+        document.getElementById('proxies-count').textContent = (j.count||0) + ' saved';
+      } catch(e){ document.getElementById('err').textContent = 'Could not save proxies: '+e.message; }
+    });
+    loadByo();
+
+    // Colour each hit by its server-classified status, NOT login-success: a
+    // banned account (Banned: Y) is red, a non-linkable / 2FA one is amber/dim,
+    // VWI is gold, and only a clean valid hit is green.
+    const STATUS_CLASS = { vwi:'vwi', valid:'ok', twofa:'twofa', banned:'bad', invalid:'bad', err:'bad', retry:'skip', other:'skip' };
+    function renderLine(line, status) {
+      const div = document.createElement('div');
+      if (status && STATUS_CLASS[status]) div.className = STATUS_CLASS[status];
+      else if (line.includes(' | INVALID') || line.includes('ERROR_')) div.className = 'bad';
+      else if (line.includes('2FA_REQUIRED')) div.className = 'skip';
+      else div.className = 'ok';
+      div.textContent = line;
+      return div;
+    }
+
+    let lastHitsSig = '';
+    async function poll() {
+      if (!currentJob) return;
+      try {
+        const r = await fetch('/api/bulk/' + currentJob);
+        if (!r.ok) return;
+        const j = await r.json();
+        const pct = j.total ? (j.done / j.total * 100) : 0;
+        document.getElementById('job-fill').style.width = pct.toFixed(1) + '%';
+        const charged = fmtMoney(j.chargedCents || 0);
+        const summary = `<b>${j.done}</b>/<b>${j.total}</b> processed · charged <b>${charged}</b> · status <b>${j.status}</b>`;
+        document.getElementById('job-summary').innerHTML = summary;
+
+        // Live hit counter (valid + VWI = "hits"; banned/2FA/invalid broken out).
+        const c = j.counts || {};
+        const hc = document.getElementById('hit-counter');
+        if (hc) {
+          const chip = (cls, label, n) => `<span class="chip ${cls}"><b>${Number(n||0).toLocaleString()}</b> ${label}</span>`;
+          hc.innerHTML =
+            chip('hit', 'hits', (c.valid||0) + (c.vwi||0)) +
+            chip('vwi', 'VWI', c.vwi||0) +
+            chip('', '2FA', c.twofa||0) +
+            chip('banned', 'banned', c.banned||0) +
+            chip('', 'invalid', c.invalid||0);
+        }
+
+        // Live feed shows the recent hits, each coloured by its real status
+        // (banned red, 2FA amber, VWI gold, clean valid green).
+        const live = document.getElementById('live');
+        const hits = j.hits || (j.recentValid || []).map(line => ({ line, status: null }));
+        const sig = hits.map(h => h.line).join('\n');
+        if (sig !== lastHitsSig) {
+          live.innerHTML = '';
+          for (const h of hits) live.appendChild(renderLine(h.line, h.status));
+          live.scrollTop = live.scrollHeight;
+          lastHitsSig = sig;
+        }
+
+        if (j.stoppedEarly) {
+          document.getElementById('job-warn').textContent =
+            j.stoppedEarly === 'insufficient_balance' ? 'Stopped early: balance ran out mid-job.' :
+            j.stoppedEarly === 'cancelled' ? 'Stopped early: cancelled by user.' : '';
+        }
+
+        if (j.status !== 'running') {
+          stopPolling();
+          const ready = !(j.done > 0);
+          document.getElementById('download-btn').disabled = ready;
+          document.getElementById('download-valid-btn').disabled = ready;
+          document.getElementById('download-vwi-btn').disabled = ready;
+          document.getElementById('download-invalid-btn').disabled = ready;
+          document.getElementById('download-banned-btn').disabled = ready;
+          // Unchecked is useful even when nothing got checked (whole list unchecked).
+          document.getElementById('download-unchecked-btn').disabled = false;
+          // Resume only when there are accounts left to check.
+          document.getElementById('resume-btn').disabled = !(j.done < j.total);
+          document.getElementById('cancel-btn').disabled = true;
+          // Refresh user balance after the job lands
+          loadMe();
+        }
+      } catch {}
+    }
+
+    function startPolling() {
+      stopPolling();
+      poll();
+      pollTimer = setInterval(poll, 1500);
+    }
+    function stopPolling() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    document.getElementById('cancel-btn').addEventListener('click', async () => {
+      if (!currentJob) return;
+      const btn = document.getElementById('cancel-btn');
+      btn.disabled = true; btn.textContent = 'Stopping…';
+      try { await fetch('/api/bulk/' + currentJob + '/cancel', { method:'POST' }); } catch {}
+      // Poll a few times so the snapshot-finalized results unlock downloads fast.
+      for (let i = 0; i < 6; i++) { await new Promise(r => setTimeout(r, 600)); await poll(); }
+      btn.textContent = 'Stop job';
+    });
+
+    function downloadResults(type) {
+      if (!currentJob) return;
+      const q = type && type !== 'all' ? ('?type=' + type) : '';
+      window.location.href = '/api/bulk/' + currentJob + '/download' + q;
+    }
+    document.getElementById('download-btn').addEventListener('click', () => downloadResults('all'));
+    document.getElementById('download-valid-btn').addEventListener('click', () => downloadResults('valid'));
+    document.getElementById('download-vwi-btn').addEventListener('click', () => downloadResults('vwi'));
+    document.getElementById('download-invalid-btn').addEventListener('click', () => downloadResults('invalid'));
+    document.getElementById('download-banned-btn').addEventListener('click', () => downloadResults('banned'));
+
+    // ── Download UNCHECKED accounts ──────────────────────────────────────────
+    // Diffs the original input against the emails that actually appear in the
+    // results: anything in the input but NOT in the results was never checked
+    // (job stopped early, cancelled, ran out of balance, etc.) so the user can
+    // re-run just those. Done client-side from the input they submitted.
+    const emailOf = (line) => { const i = line.indexOf(':'); return i > 0 ? line.slice(0, i).trim().toLowerCase() : ''; };
+    function parseInputAccounts(text) {
+      const out = [], seen = new Set();
+      for (const raw0 of text.split(/\r?\n/)) {
+        const raw = raw0.trim();
+        if (!raw || raw.startsWith('#')) continue;
+        const i = raw.indexOf(':');
+        if (i < 1 || i === raw.length - 1) continue;       // need email:password
+        const email = raw.slice(0, i).trim().toLowerCase();
+        if (!email || seen.has(email)) continue;           // dedupe by email
+        seen.add(email);
+        out.push({ email, raw });
+      }
+      return out;
+    }
+    async function computeAndDownloadUnchecked(inputText) {
+      const btn = document.getElementById('download-unchecked-btn');
+      const label = btn.textContent; btn.disabled = true; btn.textContent = 'Working…';
+      try {
+        // Pull the full results to learn which emails were actually checked.
+        // 404 = no results file (e.g. 0 checked) → treat as "nothing checked".
+        let checked = new Set();
+        const res = await fetch('/api/bulk/' + currentJob + '/download?type=all');
+        if (res.ok) {
+          const text = await res.text();
+          for (const line of text.split(/\r?\n/)) { const e = emailOf(line); if (e) checked.add(e); }
+        } else if (res.status !== 404) {
+          throw new Error('Could not load results (HTTP ' + res.status + ').');
+        }
+        const input = parseInputAccounts(inputText);
+        if (!input.length) { alert('No valid email:password lines found in that input.'); return; }
+        const unchecked = input.filter(a => !checked.has(a.email));
+        if (!unchecked.length) {
+          alert('All ' + input.length.toLocaleString() + ' account(s) were checked — none missing.');
+          return;
+        }
+        const blob = new Blob([unchecked.map(a => a.raw).join('\n') + '\n'], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'unchecked-' + currentJob + '.txt'; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      } catch (e) {
+        alert('Failed to build unchecked list: ' + e.message);
+      } finally {
+        btn.disabled = false; btn.textContent = label;
+      }
+    }
+    document.getElementById('download-unchecked-btn').addEventListener('click', async () => {
+      if (!currentJob) return;
+      const btn = document.getElementById('download-unchecked-btn');
+      const label = btn.textContent; btn.disabled = true; btn.textContent = 'Working…';
+      try {
+        // Server computes unchecked from the stored input — no file prompt.
+        const r = await fetch('/api/bulk/' + currentJob + '/download?type=unchecked');
+        if (r.ok) {
+          const blob = await r.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href = url; a.download = 'unchecked-' + currentJob + '.txt'; a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 2000);
+          return;
+        }
+        if (r.status === 404) {
+          // Old job (input not stored) → fall back to the original-file diff.
+          if (lastJobInputJobId === currentJob && lastJobInput != null) computeAndDownloadUnchecked(lastJobInput);
+          else document.getElementById('unchecked-orig-file').click();
+          return;
+        }
+        const d = await r.json().catch(() => ({}));
+        alert('Failed: ' + (d.error || ('HTTP ' + r.status)));
+      } catch (e) { alert('Failed: ' + e.message); }
+      finally { btn.disabled = false; btn.textContent = label; }
+    });
+
+    // Resume: start a new job for the not-yet-checked accounts.
+    document.getElementById('resume-btn').addEventListener('click', async () => {
+      if (!currentJob) return;
+      const btn = document.getElementById('resume-btn');
+      const label = btn.textContent; btn.disabled = true; btn.textContent = 'Resuming…';
+      try {
+        const r = await fetch('/api/bulk/' + currentJob + '/resume', { method: 'POST' });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          let msg = d.error || ('HTTP ' + r.status);
+          if (d.needed_cents != null) msg += ` (needed ${fmtMoney(d.needed_cents)}, have ${fmtMoney(d.have_cents)})`;
+          alert(msg); return;
+        }
+        // Switch the view to the new job and start watching it.
+        currentJob = d.jobId;
+        lastJobInput = null; lastJobInputJobId = null;
+        renderedCount = 0;
+        document.getElementById('live').textContent = '';
+        document.getElementById('job-warn').textContent = '';
+        ['download-btn', 'download-valid-btn', 'download-vwi-btn', 'download-invalid-btn', 'download-banned-btn', 'download-unchecked-btn', 'resume-btn']
+          .forEach(id => { document.getElementById(id).disabled = true; });
+        document.getElementById('cancel-btn').disabled = false;
+        history.replaceState(null, '', '/bulk?job=' + d.jobId);
+        startPolling();
+      } catch (e) { alert('Failed: ' + e.message); }
+      finally { btn.textContent = label; }
+    });
+    document.getElementById('unchecked-orig-file').addEventListener('change', async (ev) => {
+      const f = ev.target.files[0]; if (!f) return;
+      const text = await f.text();
+      ev.target.value = '';
+      computeAndDownloadUnchecked(text);
+    });
+
+    // Reconnect to an already-running (or finished) job if ?job=<id> is present.
+    // Lets a user who navigated away / closed the tab come back from the
+    // account page's "Resume / Stop" link and pick up the live feed, stop it,
+    // or download results — the job kept running server-side the whole time.
+    function reconnectFromUrl() {
+      const id = new URLSearchParams(location.search).get('job');
+      if (!id) return;
+      currentJob = id;
+      document.getElementById('job-card').style.display = 'block';
+      document.getElementById('input-card').style.display = 'none';
+      document.getElementById('live').textContent = '';
+      document.getElementById('job-summary').textContent = 'Reconnecting…';
+      startPolling();
+    }
+
+    document.getElementById('logout').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('/api/auth/logout', { method:'POST' });
+      location.href = '/';
+    });
+
+    loadConfig().then(loadMe).then(reconnectFromUrl);
+  </script>
+  <footer style="text-align:center;padding:2rem 1rem;color:#56607a;font-size:.8rem;border-top:1px solid #1e2842;margin-top:2rem;">
+    R6CHECKER.XYZ — Unofficial. Not affiliated with Ubisoft.
+    <span style="margin:0 .5rem">·</span>
+    <a href="https://discord.gg/gnPB2JBPS6" target="_blank" rel="noopener noreferrer" style="color:#5aa3ff;text-decoration:none;">Support</a>
+    <span style="margin:0 .5rem">·</span>
+    <a href="/legal" style="color:#5aa3ff;text-decoration:none;">Terms &amp; Privacy</a>
+  </footer>
+  <script src="/discord-popup.js" defer></script>
+</body>
+</html>

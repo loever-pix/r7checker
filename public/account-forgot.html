@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R6Checker — Forgot password</title>
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    :root{--brand:#3a8dff;--brand-soft:#5aa3ff;--bg:#080b14;--bg-card:#111827;
+          --border:#1e2842;--text:#e7ecf6;--text-dim:#8593ad;}
+    body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;
+         min-height:100vh;margin:0;display:flex;align-items:center;justify-content:center;padding:1.5rem 1rem;}
+    body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background-repeat:no-repeat;background-position:center;background-size:cover;
+      background-image:linear-gradient(180deg,rgba(8,11,20,.88),rgba(8,11,20,.93)),
+        radial-gradient(circle at 20% 0%,rgba(58,141,255,.12),transparent 50%),
+        url('/img/ayanokoji/hero-1280.webp');}
+    .shell{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+           padding:1.4rem;max-width:420px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+    .home-link{display:block;text-align:center;color:var(--text-dim);text-decoration:none;font-size:.85rem;margin-bottom:.6rem;}
+    .home-link:hover{color:var(--brand-soft);}
+    h1{font-weight:800;font-size:1.6rem;margin:.3rem 0 .3rem;text-align:center;}
+    h1 .dot{color:#cad3dc;}
+    .sub{color:var(--text-dim);text-align:center;font-size:.82rem;margin:0 0 1rem;line-height:1.5;}
+    .form-group{margin-bottom:.8rem;}
+    label{display:block;font-size:.78rem;margin-bottom:.3rem;}
+    input{width:100%;padding:.6rem .7rem;box-sizing:border-box;background:var(--bg);
+          border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:.92rem;outline:none;}
+    input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(58,141,255,.15);}
+    .btn{width:100%;padding:.7rem;background:var(--brand);color:#fff;border:none;border-radius:6px;
+         font-weight:600;font-size:.95rem;cursor:pointer;margin-top:.3rem;}
+    .btn:hover{background:var(--brand-soft);}
+    .btn:disabled{opacity:.55;cursor:wait;}
+    .msg{font-size:.85rem;margin:.7rem 0 0;min-height:1em;text-align:center;line-height:1.5;}
+    .msg.ok{color:#34d399;}
+    .msg.err{color:#f87171;}
+    .alt{color:var(--text-dim);text-align:center;font-size:.82rem;margin-top:1rem;}
+    .alt a{color:var(--brand-soft);text-decoration:none;}
+    .alt a:hover{text-decoration:underline;}
+    /* Phones: 16px inputs stop iOS Safari auto-zoom on focus. */
+    @media (max-width:640px){ input,select{font-size:16px;} body{padding:1rem .8rem;} }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <a class="home-link" href="/">← Back to home</a>
+    <h1>Forgot password<span class="dot">.</span></h1>
+    <p class="sub">Enter the email on your account. We'll send a reset link if it matches.</p>
+    <form id="forgot-form" autocomplete="on">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email">
+      </div>
+      <button type="submit" class="btn" id="submit-btn">Send reset link</button>
+      <div class="msg" id="msg"></div>
+    </form>
+    <div class="alt"><a href="/account/login">Back to sign in</a></div>
+  </div>
+  <script>
+    const form = document.getElementById('forgot-form');
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('submit-btn');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = ''; msg.className = 'msg';
+      btn.disabled = true; btn.textContent = 'Sending…';
+      const email = document.getElementById('email').value.trim();
+      try {
+        const r = await fetch('/api/auth/forgot', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email }),
+        });
+        const data = await r.json();
+        // Always show the same message — privacy
+        msg.textContent = data.message || 'If that email is registered, a reset link has been sent. Check your inbox (and spam folder).';
+        msg.className = 'msg ok';
+        btn.disabled = false; btn.textContent = 'Send reset link';
+        form.reset();
+      } catch (e) {
+        msg.textContent = 'Network error: ' + e.message;
+        msg.className = 'msg err';
+        btn.disabled = false; btn.textContent = 'Send reset link';
+      }
+    });
+  </script>
+</body>
+</html>

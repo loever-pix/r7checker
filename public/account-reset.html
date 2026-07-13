@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R6Checker — Reset password</title>
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    :root{--brand:#3a8dff;--brand-soft:#5aa3ff;--bg:#080b14;--bg-card:#111827;
+          --border:#1e2842;--text:#e7ecf6;--text-dim:#8593ad;
+          --ok:#34d399;--err:#f87171;}
+    body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;
+         min-height:100vh;margin:0;display:flex;align-items:center;justify-content:center;padding:1.5rem 1rem;}
+    body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background-repeat:no-repeat;background-position:center;background-size:cover;
+      background-image:linear-gradient(180deg,rgba(8,11,20,.88),rgba(8,11,20,.93)),
+        radial-gradient(circle at 20% 0%,rgba(58,141,255,.12),transparent 50%),
+        url('/img/ayanokoji/hero-1280.webp');}
+    .shell{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+           padding:1.4rem;max-width:420px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.5);}
+    .home-link{display:block;text-align:center;color:var(--text-dim);text-decoration:none;font-size:.85rem;margin-bottom:.6rem;}
+    .home-link:hover{color:var(--brand-soft);}
+    h1{font-weight:800;font-size:1.6rem;margin:.3rem 0 .3rem;text-align:center;}
+    h1 .dot{color:#cad3dc;}
+    .sub{color:var(--text-dim);text-align:center;font-size:.82rem;margin:0 0 1rem;line-height:1.5;}
+    .form-group{margin-bottom:.8rem;}
+    label{display:block;font-size:.78rem;margin-bottom:.3rem;}
+    input{width:100%;padding:.6rem .7rem;box-sizing:border-box;background:var(--bg);
+          border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:.92rem;outline:none;}
+    input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(58,141,255,.15);}
+    .btn{width:100%;padding:.7rem;background:var(--brand);color:#fff;border:none;border-radius:6px;
+         font-weight:600;font-size:.95rem;cursor:pointer;margin-top:.3rem;}
+    .btn:hover{background:var(--brand-soft);}
+    .btn:disabled{opacity:.55;cursor:wait;}
+    .msg{font-size:.85rem;margin:.7rem 0 0;min-height:1em;text-align:center;line-height:1.5;}
+    .msg.ok{color:var(--ok);}
+    .msg.err{color:var(--err);}
+    .hint{color:var(--text-dim);font-size:.78rem;margin-top:.2rem;}
+    .alt{color:var(--text-dim);text-align:center;font-size:.82rem;margin-top:1rem;}
+    .alt a{color:var(--brand-soft);text-decoration:none;}
+    .alt a:hover{text-decoration:underline;}
+    .center{text-align:center;color:var(--text-dim);font-size:.9rem;padding:1rem;}
+    /* Phones: 16px inputs stop iOS Safari auto-zoom on focus. */
+    @media (max-width:640px){ input,select{font-size:16px;} body{padding:1rem .8rem;} }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <a class="home-link" href="/">← Back to home</a>
+    <h1>Reset password<span class="dot">.</span></h1>
+
+    <div id="loading" class="center">Checking your link…</div>
+
+    <div id="invalid" style="display:none">
+      <p class="msg err" style="text-align:center">This reset link is invalid or has expired.</p>
+      <p class="sub">Reset links are valid for 1 hour. Request a new one if needed.</p>
+      <p style="text-align:center;margin-top:1rem"><a href="/account/forgot" style="color:var(--brand-soft)">Request a new reset link</a></p>
+    </div>
+
+    <form id="reset-form" autocomplete="off" style="display:none">
+      <p class="sub">Pick a new password (at least 12 characters).</p>
+      <div class="form-group">
+        <label for="password">New password</label>
+        <input type="password" id="password" name="password" required minlength="12" autocomplete="new-password">
+        <div class="hint">12 characters minimum.</div>
+      </div>
+      <div class="form-group">
+        <label for="password2">Confirm new password</label>
+        <input type="password" id="password2" name="password2" required minlength="12" autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn" id="submit-btn">Update password</button>
+      <div class="msg" id="msg"></div>
+    </form>
+
+    <div id="success" style="display:none">
+      <p class="msg ok">Password updated. You can now sign in with your new password.</p>
+      <p style="text-align:center;margin-top:1rem"><a href="/account/login" style="color:var(--brand-soft)">Go to sign in →</a></p>
+    </div>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token') || '';
+
+    async function init() {
+      if (!/^[a-f0-9]{64}$/.test(token)) {
+        showInvalid();
+        return;
+      }
+      try {
+        const r = await fetch('/api/auth/reset-info?token=' + encodeURIComponent(token));
+        const info = await r.json();
+        if (info.valid) {
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('reset-form').style.display = '';
+        } else {
+          showInvalid();
+        }
+      } catch {
+        showInvalid();
+      }
+    }
+    function showInvalid() {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('invalid').style.display = '';
+    }
+    function showSuccess() {
+      document.getElementById('reset-form').style.display = 'none';
+      document.getElementById('success').style.display = '';
+    }
+
+    document.getElementById('reset-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('msg');
+      const btn = document.getElementById('submit-btn');
+      msg.textContent = ''; msg.className = 'msg';
+      const password  = document.getElementById('password').value;
+      const password2 = document.getElementById('password2').value;
+      if (password !== password2) {
+        msg.textContent = "Passwords don't match.";
+        msg.className = 'msg err';
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Updating…';
+      try {
+        const r = await fetch('/api/auth/reset', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ token, password }),
+        });
+        const data = await r.json();
+        if (r.ok) { showSuccess(); return; }
+        msg.textContent = data.error || 'Reset failed.';
+        msg.className = 'msg err';
+        btn.disabled = false; btn.textContent = 'Update password';
+      } catch (e) {
+        msg.textContent = 'Network error: ' + e.message;
+        msg.className = 'msg err';
+        btn.disabled = false; btn.textContent = 'Update password';
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>

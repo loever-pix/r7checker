@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R6Checker — Profile</title>
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* ── Match home page palette ──────────────────────────────── */
+    :root {
+      --brand:        #3a8dff;
+      --brand-soft:   #5aa3ff;
+      --brand-dim:    #1a4d99;
+      --discord:      #5865f2;
+      --bg:           #080b14;
+      --bg-card:      #111827;
+      --bg-card-hov:  #141d31;
+      --border:       #1e2842;
+      --border-bright:#2c3a5e;
+      --text:         #e7ecf6;
+      --text-dim:     #8593ad;
+      --text-very-dim:#4d5a72;
+      --cote:       #cad3dc;   /* Ayanokoji / Classroom of the Elite */
+      --cote-dim:   #9aa7b8;
+      /* Retone the inventory chrome (style.css ships an amber/grey theme)
+         to the site's navy-slate + blue. Rank-tier rarity colors are left
+         untouched so Gold/Diamond/Champion etc. still read correctly. */
+      --surface:     #111827;
+      --surface2:    #0f1830;
+      --text-muted:  #8593ad;
+      --accent:      #3a8dff;
+      --pill-bg:     #0f1830;
+      --pill-border: #2c3a5e;
+      --pill-hover:  #18233c;
+    }
+
+    body.locker-page {
+      background: var(--bg) !important;
+      color: var(--text) !important;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      position: relative;
+    }
+    /* Restrained ambient lighting — no busy fan-art backdrop. */
+    body.locker-page::after {
+      content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background-repeat:no-repeat; background-position:center top; background-size:cover;
+      background-image:
+        linear-gradient(180deg, rgba(8,11,20,.8), rgba(8,11,20,.9) 55%, var(--bg) 86%),
+        radial-gradient(900px circle at 50% -10%, rgba(58,141,255,.10), transparent 60%),
+        url('/img/ayanokoji/hero-1280.webp');
+    }
+
+    /* ── Topbar (matches home page) ────────────────────────────── */
+    .site-topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,11,20,.85); backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .site-topbar .brand {
+      display: flex; align-items: center; gap: .65rem;
+      font-size: 1.15rem; font-weight: 800; color: var(--text);
+      letter-spacing: .5px; text-decoration: none;
+    }
+    .site-topbar .brand img { width: 36px; height: 36px; }
+    .site-topbar .brand .dot { color: var(--cote); }
+    .site-topbar .right { display: flex; gap: .6rem; align-items: center; }
+
+    .pill {
+      background: transparent; border: 1px solid var(--border-bright);
+      color: var(--text); padding: .55rem 1.1rem; border-radius: 8px;
+      font-size: .85rem; font-weight: 500; cursor: pointer; text-decoration: none;
+      transition: .15s;
+    }
+    .pill:hover { background: var(--bg-card); border-color: var(--brand); }
+    .pill.primary {
+      background: var(--brand); color: #fff; border-color: var(--brand);
+      font-weight: 600; box-shadow: 0 0 20px rgba(58,141,255,.25);
+    }
+    .pill.primary:hover { background: var(--brand-soft); border-color: var(--brand-soft); }
+
+    /* ── Discord button (topbar) ──────────────────────────────── */
+    .discord-btn {
+      position: relative; display: flex; align-items: center; gap: .5rem;
+      background: var(--discord); color: #fff; padding: .55rem 1rem;
+      border-radius: 8px; text-decoration: none; font-size: .85rem; font-weight: 600;
+      transition: .15s; border: none; cursor: pointer;
+    }
+    .discord-btn:hover { background: #4752c4; }
+    .discord-btn svg { width: 18px; height: 18px; }
+    .discord-avatar { width: 24px; height: 24px; border-radius: 50%; }
+    .discord-tooltip {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      background: #111827; border: 1px solid var(--border-bright);
+      color: var(--text); padding: .7rem .9rem; border-radius: .5rem;
+      font-size: .78rem; font-weight: 400; line-height: 1.45;
+      opacity: 0; pointer-events: none; transition: opacity .15s;
+      box-shadow: 0 8px 24px rgba(0,0,0,.6); z-index: 60; width: 260px;
+    }
+    .discord-tooltip::before {
+      content: ''; position: absolute; top: -6px; right: 18px;
+      width: 10px; height: 10px; background: #111827;
+      border-left: 1px solid var(--border-bright); border-top: 1px solid var(--border-bright);
+      transform: rotate(45deg);
+    }
+    .discord-btn:hover .discord-tooltip { opacity: 1; }
+    /* Avatar + logout sit inline (was wrapping the ✕ below the avatar). */
+    #me-slot { display: flex; align-items: center; gap: .4rem; }
+    #me-slot #logout-btn { padding: .45rem .6rem; line-height: 1; font-size: .8rem; color: var(--text-dim); }
+    #me-slot #logout-btn:hover { color: var(--text); border-color: #f87171; }
+
+    /* ── Share row ────────────────────────────────────────────── */
+    .share-row {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .65rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(17,24,39,.6);
+      font-size: .82rem; color: var(--text-dim);
+      flex-wrap: wrap;
+    }
+    .share-row code {
+      background: var(--bg-card); border: 1px solid var(--border);
+      padding: .25rem .65rem; border-radius: 5px; color: var(--text);
+      font-size: .78rem; word-break: break-all; font-family: monospace;
+    }
+    .share-row button {
+      background: var(--brand); color: #fff; border: none;
+      padding: .35rem .85rem; border-radius: 6px; cursor: pointer;
+      font-size: .76rem; font-weight: 600; transition: .15s;
+    }
+    .share-row button:hover { background: var(--brand-soft); }
+    .refresh-btn {
+      background: transparent !important; border: 1px solid var(--border-bright) !important;
+      color: var(--text-dim) !important;
+      display: inline-flex !important; align-items: center; gap: .4rem;
+    }
+    .refresh-btn:hover:not(:disabled) {
+      background: var(--bg-card-hov) !important; border-color: var(--brand) !important;
+      color: var(--text) !important;
+    }
+    .refresh-btn:disabled { opacity: .5; cursor: wait; }
+    .refresh-btn .icon { transition: transform .8s; display: inline-block; }
+    .refresh-btn.spinning .icon { animation: rspin 1s linear infinite; }
+    @keyframes rspin { to { transform: rotate(360deg); } }
+
+    /* ── User hero (replaces .top-bar) ────────────────────────── */
+    .user-hero {
+      max-width: 1280px; margin: 1.25rem auto;
+      padding: 1.5rem 1.75rem;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: .8rem;
+      display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+    }
+    .user-hero .avatar {
+      width: 88px; height: 88px; border-radius: 50%;
+      background: var(--bg); border: 2px solid var(--brand); flex-shrink: 0;
+      box-shadow: 0 0 20px rgba(58,141,255,.25);
+    }
+    .user-hero .info { flex: 1; min-width: 0; }
+    .user-hero h1#username {
+      margin: 0 0 .3rem; font-size: 1.9rem; font-weight: 800;
+      color: var(--text); letter-spacing: -.02em;
+    }
+    .user-hero .user-level {
+      color: var(--text-dim); font-size: .9rem; margin-bottom: .55rem;
+    }
+    .user-hero .platforms { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: .55rem; }
+    .platform-badge {
+      display: inline-block; padding: .2rem .6rem;
+      background: var(--bg); border: 1px solid var(--border-bright);
+      border-radius: 4px; font-size: .7rem; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: .5px; font-weight: 600;
+    }
+    a.platform-link {
+      text-decoration: none; color: #cfe1ff;
+      border-color: #3a8dff; background: rgba(58,141,255,.08);
+      transition: background .12s ease, color .12s ease;
+    }
+    a.platform-link:hover {
+      background: rgba(58,141,255,.18); color: #fff;
+    }
+    .banned-badge {
+      background: rgba(255,75,75,.12) !important;
+      border-color: #ff4b4b !important;
+      color: #ff8b8b !important;
+    }
+    .user-hero .stats-row {
+      display: flex; gap: 1.5rem; flex-shrink: 0;
+    }
+    .stat-block {
+      display: flex; flex-direction: column; align-items: flex-end;
+      min-width: 80px;
+    }
+    .stat-value {
+      color: var(--brand); font-size: 1.65rem; font-weight: 800;
+      font-variant-numeric: tabular-nums; line-height: 1;
+    }
+    .stat-label {
+      color: var(--text-dim); font-size: .72rem;
+      text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: .3rem;
+    }
+
+    /* ── Combat stats panel (tracker.gg) ───────────────────────── */
+    .combat-stats {
+      max-width: 1280px; margin: 0 auto 1.25rem; padding: 1.1rem 1.25rem;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: .8rem;
+    }
+    .cs-title {
+      font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+      color: var(--text); margin-bottom: .9rem; display: flex; align-items: center; gap: .55rem;
+    }
+    .cs-title::before {
+      content: ''; width: 4px; height: 16px; background: var(--brand); border-radius: 2px;
+    }
+    .cs-src {
+      font-size: .62rem; font-weight: 600; letter-spacing: .5px;
+      color: var(--text-very-dim); text-transform: none;
+    }
+    .cs-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(108px, 1fr)); gap: .7rem;
+    }
+    .stat-tile {
+      background: var(--bg); border: 1px solid var(--border); border-radius: .6rem;
+      padding: .8rem .55rem; display: flex; flex-direction: column; align-items: center; gap: .3rem;
+    }
+    .st-val {
+      color: var(--brand); font-size: 1.4rem; font-weight: 800;
+      font-variant-numeric: tabular-nums; line-height: 1;
+    }
+    .st-label {
+      color: var(--text-dim); font-size: .64rem; text-transform: uppercase;
+      letter-spacing: .8px; font-weight: 600; text-align: center;
+    }
+    .cs-modes {
+      display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .85rem;
+    }
+    .cs-mode {
+      display: flex; align-items: baseline; gap: .45rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 999px; padding: .35rem .8rem; font-size: .74rem;
+    }
+    .cs-mode .m-name { color: var(--text); font-weight: 700; }
+    .cs-mode .m-stat { color: var(--text-dim); }
+    .cs-mode .m-stat b { color: var(--brand-soft); font-weight: 700; }
+
+    /* ── Checked-by pill (Discord branded) ─────────────────────── */
+    .checked-by {
+      display: inline-flex; align-items: center; gap: .55rem;
+      background: linear-gradient(135deg, rgba(88,101,242,.20), rgba(88,101,242,.12));
+      border: 1px solid rgba(88,101,242,.50);
+      color: #fff; padding: .45rem .9rem; border-radius: 999px;
+      font-size: .82rem; font-weight: 600; text-decoration: none;
+      box-shadow: 0 2px 12px rgba(88,101,242,.2); transition: .15s;
+    }
+    .checked-by:hover {
+      background: linear-gradient(135deg, rgba(88,101,242,.35), rgba(88,101,242,.22));
+      border-color: rgba(88,101,242,.75); transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(88,101,242,.35);
+    }
+    .checked-by img { width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); }
+    .checked-by .label { color: #b8c0e6; font-weight: 500; }
+    .checked-by .who { color: #fff; }
+    .checked-by .discord-icon { width: 14px; height: 14px; fill: #fff; }
+
+    /* Current rank card — same size as all-time cards, just highlighted */
+    #current-rank-card-host .rank-card {
+      border-left: 3px solid var(--brand) !important;
+      background: linear-gradient(90deg, rgba(58,141,255,.10), var(--bg-card) 60%) !important;
+      box-shadow: 0 0 18px rgba(58,141,255,.12);
+    }
+    #current-rank-card-host .rank-card:hover {
+      border-color: var(--brand) !important;
+    }
+
+    /* ── Main layout ──────────────────────────────────────────── */
+    .main-layout {
+      max-width: 1280px; margin: 0 auto;
+      padding: 0 1.25rem 3rem;
+      display: grid; grid-template-columns: 1fr 280px;
+      gap: 1.5rem; align-items: start;
+    }
+    .inventory-col { min-width: 0; }
+
+    /* ── Section cards (override style.css defaults) ──────────── */
+    .section {
+      background: var(--bg-card) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: .7rem !important;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .section-header {
+      padding: .85rem 1.1rem !important;
+      background: rgba(17,24,39,.7) !important;
+      border-bottom: 1px solid var(--border) !important;
+    }
+    .section-title { color: var(--text) !important; }
+    .section-count { color: var(--brand) !important; }
+
+    /* ── Rank sidebar ─────────────────────────────────────────── */
+    .rank-sidebar { position: sticky; top: 88px; }
+    .rank-sidebar-title {
+      color: var(--text); font-size: .8rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2px;
+      margin-bottom: .75rem; padding-left: .15rem;
+      display: flex; align-items: center; gap: .55rem;
+    }
+    .rank-sidebar-title::before {
+      content: ''; width: 4px; height: 16px; background: var(--brand); border-radius: 2px;
+    }
+    #rank-cards { max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 4px; }
+    #rank-cards::-webkit-scrollbar { width: 5px; }
+    #rank-cards::-webkit-scrollbar-track { background: transparent; }
+    #rank-cards::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+    .rank-card {
+      background: var(--bg-card) !important;
+      border: 1px solid var(--border) !important;
+      transition: .15s;
+    }
+    .rank-card:hover { border-color: var(--brand) !important; transform: translateX(-2px); }
+
+    /* ── Mobile ─────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .main-layout { grid-template-columns: 1fr; }
+      .rank-sidebar { position: static; }
+      #rank-cards { max-height: none; }
+    }
+    @media (max-width: 600px) {
+      .user-hero, .current-peak { padding: 1rem 1.1rem; gap: 1rem; }
+      .user-hero h1#username { font-size: 1.5rem; }
+      .current-peak { flex-direction: column; align-items: flex-start; }
+      .current-peak .stats { width: 100%; justify-content: space-around; }
+      .current-peak .rank-name { font-size: 1.5rem; }
+      .stat-value { font-size: 1.3rem; }
+      /* Sticky topbar: brand on top, the two action pills wrap onto their
+         own full-width row below it — no sideways sliding. */
+      .site-topbar { padding: .65rem .85rem; gap: .5rem; flex-wrap: wrap; }
+      .site-topbar .brand { font-size: 1rem; }
+      .site-topbar .brand img { width: 28px; height: 28px; }
+      .site-topbar .right { width: 100%; gap: .5rem; flex-wrap: wrap; }
+      .site-topbar .right .pill { flex: 1 1 auto; text-align: center; justify-content: center; }
+      .site-topbar .right .discord-btn { flex: 1 1 100%; justify-content: center; }
+      .pill { padding: .6rem .9rem; font-size: .85rem; }
+      /* Share row: code block can take the full width and wrap. */
+      .share-row { padding: .6rem .85rem; }
+      .share-row code { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body class="locker-page">
+
+  <!-- Site topbar (matches home) -->
+  <div class="site-topbar">
+    <a href="/" class="brand">
+      <img src="/img/logo.png" alt="" onerror="this.style.display='none'">
+      <span>R6CHECKER<span class="dot">.XYZ</span></span>
+    </a>
+    <div class="right">
+      <a href="/" class="pill">Home</a>
+      <a href="/login" class="pill primary">Check Another</a>
+      <div id="me-slot"></div>
+    </div>
+  </div>
+
+  <!-- Share row -->
+  <div class="share-row">
+    <span>Share this profile:</span>
+    <code id="share-url"></code>
+    <button id="copy-share">Copy link</button>
+    <button class="refresh-btn" id="refresh-btn" style="margin-left:auto" title="Re-fetch latest Ubisoft data">
+      <span class="icon">↻</span><span>Refresh</span>
+    </button>
+  </div>
+
+  <!-- User hero -->
+  <div class="user-hero">
+    <img class="avatar" id="avatar" src="" alt="Avatar">
+    <div class="info">
+      <h1 id="username"></h1>
+      <div class="user-level">Level <span id="level"></span></div>
+      <div class="platforms" id="platforms"></div>
+      <div id="last-played" style="display:none;font-size:.82rem;font-weight:600;margin:.15rem 0 .4rem"></div>
+      <div id="verify-badges" style="display:none;gap:.4rem;flex-wrap:wrap;margin:.1rem 0 .4rem"></div>
+      <div id="checked-by-slot"></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-block">
+        <span class="stat-value" id="renown"></span>
+        <span class="stat-label">Renown</span>
+      </div>
+      <div class="stat-block">
+        <span class="stat-value" id="credits"></span>
+        <span class="stat-label">R6 Credits</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Combat stats (tracker.gg) — rendered by app.js -->
+  <div id="combat-stats" class="combat-stats" style="display:none"></div>
+
+  <!-- Main layout: inventory + rank sidebar (current + all-time) -->
+  <div class="main-layout">
+    <div class="inventory-col" id="inventory-sections">
+      <!-- Sections rendered dynamically by app.js -->
+    </div>
+
+    <div class="rank-sidebar">
+      <!-- Current rank: small "CURRENT" label, then a normal-sized rank card -->
+      <div id="current-rank-block" style="display:none">
+        <div class="rank-sidebar-title" style="margin-top:0">Current Rank</div>
+        <div id="current-rank-card-host"></div>
+      </div>
+      <!-- All-time peak ranks -->
+      <div class="rank-sidebar-title" style="margin-top:1rem">All-Time Season Peaks</div>
+      <div id="rank-cards"></div>
+    </div>
+  </div>
+
+  <!-- Item modal -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal">
+      <button class="modal-close" id="modal-close">×</button>
+      <img class="modal-image" id="modal-image" src="" alt="">
+      <h3 class="modal-name" id="modal-name"></h3>
+      <div class="modal-badges">
+        <span class="badge" id="modal-rarity"></span>
+        <span class="badge badge-type" id="modal-type"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Helpers ──────────────────────────────────────────────
+    const escHtml = s => String(s).replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+
+    // ── Share row: URL + Copy + Refresh ──────────────────────
+    (function () {
+      const url = location.origin + location.pathname;
+      document.getElementById('share-url').textContent = url;
+      const btn = document.getElementById('copy-share');
+      btn.onclick = () => navigator.clipboard.writeText(url).then(() => {
+        btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy link', 1500);
+      });
+      const refresh = document.getElementById('refresh-btn');
+      refresh.onclick = async () => {
+        refresh.classList.add('spinning');
+        refresh.disabled = true;
+        const userId = location.pathname.replace(/^\/profile\//, '').replace(/\/$/, '');
+        if (userId.length >= 8) {
+          try { await fetch('/api/refresh/' + encodeURIComponent(userId), { method: 'POST' }); } catch {}
+        }
+        // sessionStorage profile data is stale after refresh — clear it so login path re-fetches
+        sessionStorage.removeItem('r6player');
+        location.reload();
+      };
+    })();
+
+    // ── Topbar Discord button ────────────────────────────────
+    (async () => {
+      const slot = document.getElementById('me-slot');
+      try {
+        const { user, oauthConfigured } = await fetch('/api/me').then(r => r.json());
+        if (!oauthConfigured) return;
+        if (user) {
+          slot.innerHTML = `
+            <div class="discord-btn">
+              <img class="discord-avatar" src="${escHtml(user.avatar)}" alt="">
+              <span>${escHtml(user.username)}</span>
+              <span class="discord-tooltip">You're signed in. Profiles you check will be tagged with your Discord username so others can find &amp; add you on Discord from the profiles you've reviewed.</span>
+            </div>
+            <button class="pill" id="logout-btn" title="Sign out">✕</button>
+          `;
+          document.getElementById('logout-btn').onclick = async () => {
+            await fetch('/auth/logout', { method: 'POST' });
+            location.reload();
+          };
+        } else {
+          slot.innerHTML = `
+            <a class="discord-btn" href="/auth/discord">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.444.864-.608 1.249a18.27 18.27 0 0 0-5.487 0 12.65 12.65 0 0 0-.617-1.249.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+              <span>Sign in</span>
+              <span class="discord-tooltip">Sign in with Discord so accounts you check get tagged with your username. People can find &amp; add you on Discord from the profiles you've reviewed.</span>
+            </a>
+          `;
+        }
+      } catch {}
+    })();
+
+    // ── "Checked by" Discord pill ────────────────────────────
+    (async () => {
+      const slot = document.getElementById('checked-by-slot');
+      const userId = location.pathname.replace(/^\/profile\//, '').replace(/\/$/, '');
+      if (!userId || userId.length < 8) return;
+      try {
+        const { check } = await fetch('/api/check/' + encodeURIComponent(userId)).then(r => r.json());
+        if (check?.checkedBy) {
+          slot.innerHTML = `
+            <a class="checked-by" href="https://discord.com/users/${escHtml(check.checkedBy.id)}" target="_blank" rel="noopener" title="Click to open this Discord user — find &amp; add them!">
+              <svg class="discord-icon" viewBox="0 0 24 24"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.444.864-.608 1.249a18.27 18.27 0 0 0-5.487 0 12.65 12.65 0 0 0-.617-1.249.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+              <img src="${escHtml(check.checkedBy.avatar)}" alt="">
+              <span class="label">Checked by</span>
+              <span class="who">${escHtml(check.checkedBy.username)}</span>
+            </a>
+          `;
+        }
+      } catch {}
+    })();
+
+    // ── Current rank card — same size as all-time, just highlighted ──
+    // We DON'T render here. app.js renders all season cards in #rank-cards;
+    // we steal the first one (current season) and move it into the current-rank-block,
+    // then rewrite its content to use CURRENT rank/MMR (not peak).
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wait one tick — app.js renders synchronously after DOMContentLoaded too
+      setTimeout(() => {
+        const p = window.__PROFILE_DATA__ || JSON.parse(sessionStorage.getItem('r6player') || 'null');
+        // Last played + device (stats.cc). RED if within the last 2 weeks (the
+        // account is actively in use → risky), otherwise the usual blue.
+        (function () {
+          const el = document.getElementById('last-played');
+          if (!el || !p?.lastPlayedAt) return;
+          const d = new Date(p.lastPlayedAt);
+          if (isNaN(d.getTime())) return;
+          const devs = [...new Set((p.lastPlayedDevices || []).map(x => x && x.platform).filter(Boolean))];
+          const recent = (Date.now() - d.getTime()) < 14 * 24 * 60 * 60 * 1000;
+          const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+          el.innerHTML = 'Last played <b>' + dateStr + '</b>' + (devs.length ? (' on <b>' + devs.join(', ') + '</b>') : '');
+          el.style.color = recent ? '#ff5c6c' : '#5aa3ff';
+          el.title = recent ? 'Played within the last 2 weeks' : 'Not played in over 2 weeks';
+          el.style.display = 'block';
+        })();
+        // Email / phone verification badges.
+        (function () {
+          const host = document.getElementById('verify-badges');
+          if (!host || (p.emailVerified == null && p.phoneVerified == null)) return;
+          const badge = (label, state) => {
+            const ok = state === true, unknown = state == null;
+            const bg = unknown ? 'rgba(125,138,163,.15)' : ok ? 'rgba(66,203,110,.15)' : 'rgba(255,92,108,.15)';
+            const fg = unknown ? '#8593ad' : ok ? '#42cb6e' : '#ff5c6c';
+            const icon = unknown ? '?' : ok ? '✓' : '✕';
+            return '<span style="display:inline-flex;align-items:center;gap:.25rem;font-size:.74rem;font-weight:700;padding:.18rem .5rem;border-radius:6px;background:' + bg + ';color:' + fg + '">' + icon + ' ' + label + '</span>';
+          };
+          host.innerHTML = badge('Email verified', p.emailVerified) + badge('Phone verified', p.phoneVerified);
+          host.style.display = 'flex';
+        })();
+        if (!p?.seasonRanks?.length) return;
+        // CURRENT RANK = strictly the live season (System Override = 42). Keep in
+        // sync with lib/player.js currentSeasonGuess each new season. An account
+        // that hasn't played the current season shows "Unranked" here rather than
+        // an older season masquerading as current.
+        const CURRENT_SEASON = 42;
+        const CURRENT_SEASON_NAME = 'System Override';
+        const cur = p.seasonRanks.find(s => Number(s.season) === CURRENT_SEASON);
+        const host = document.getElementById('current-rank-card-host');
+        document.getElementById('current-rank-block').style.display = 'block';
+
+        if (cur) {
+          // Played the current season → its card is the first (highest season).
+          const list = document.getElementById('rank-cards');
+          const firstCard = list?.firstElementChild;
+          if (!firstCard) return;
+          host.appendChild(firstCard);
+          const currentTier = cur.currentRankTier || cur.rankTier;
+          firstCard.className = `rank-card tier-${currentTier}`;
+          const img = firstCard.querySelector('.rank-badge-img');
+          if (img && cur.currentIconUrl) img.src = cur.currentIconUrl;
+          const detail = firstCard.querySelector('.rank-name-label');
+          if (detail) {
+            const mmr  = cur.currentMmr ?? cur.mmr;
+            const name = cur.currentRankName || cur.rankName;
+            const rpStr = mmr ? `${Number(mmr).toLocaleString()} RP` : '';
+            detail.textContent = [rpStr, name].filter(Boolean).join('  ·  ');
+          }
+        } else {
+          // Hasn't played System Override → show it Unranked (not an old season).
+          host.innerHTML =
+            '<div class="rank-card tier-unranked">' +
+              '<div class="rank-badge-wrap"><div class="rank-icon">—</div></div>' +
+              '<div class="rank-info">' +
+                '<div class="rank-season-name">' + CURRENT_SEASON_NAME + '</div>' +
+                '<div class="rank-name-label">Unranked</div>' +
+              '</div>' +
+            '</div>';
+        }
+      }, 0);
+    });
+  </script>
+
+  <script src="/app.js?v=20260528-stats"></script>
+  <script src="/discord-popup.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "r6checker-desktop",
+  "version": "2.0.0",
+  "description": "R6Checker desktop bulk checker — local-distributed compute (worker_threads), VPS control plane only (license + updates)",
+  "bin": "local/main.js",
+  "main": "local/main.js",
+  "scripts": {
+    "start": "node local/main.js",
+    "build": "node build-local.js",
+    "build:thin": "node build-sea.js"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.0",
+    "postject": "^1.0.0-alpha.6",
+    "resedit": "^3.0.2"
+  },
+  "dependencies": {
+    "esbuild": "^0.23.1",
+    "http-proxy-agent": "^7.0.2",
+    "https-proxy-agent": "^7.0.6"
+  },
+  "allowScripts": {
+    "esbuild@0.23.1": true
+  }
+}

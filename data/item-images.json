@@ -1,0 +1,38 @@
+{
+  "_comment": "Manual item-id → image-URL overrides for items where Ubisoft's API has no visualAssetId. Add entries here to fix the remaining ~16% placeholders. Format: 'item-uuid': 'https://full/image/url.png'. Image URLs must be on an allow-listed host in server.js ALLOWED_IMG_HOSTS (ubiservices.cdn.ubi.com, staticctf.ubisoft.com, etc).",
+  "_lastUpdated": "2026-05-26",
+  "items": {
+    "ff35b92e-2558-6709-2d9c-32ceb54f3d61": "https://staticctf.ubisoft.com/J3yJr34U2pZ2Ieem48Dwy9uqj5PNUQTn/2ILhbxn12rNUwM42Mj75BQ/d9558dfbb8916d73b8e843882cd2f98f/R6-operator-thermite-elite.png",
+    "_examples": {
+      "_note": "Above is a placeholder example. To populate this map: open the locker, find an item with the question-mark icon, copy its item-id (visible in the URL when you click it), look up the image at stats.cc/siegeskins/r6.guide, and add an entry here with the proper URL."
+    },
+    "dd756482-88ea-48ce-a12e-c8432478173f": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "d992a81d-bab0-c0b1-c54f-72d85312ab4c": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "cf788c8d-4925-4bbd-942c-2f1524430638": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "c218a2c1-d025-9362-d428-e6938420ad0b": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "a6185673-5d96-430a-9b43-9c7f75d32233": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "9755cb38-1e4b-2237-cf89-f750cbedc7e1": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "92a6164e-485d-4c59-bce2-c7c393bc499d": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "8dff37b7-f689-4bda-a67a-97cad033a380": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "8395c48c-76f8-f4c4-fcf8-2a1f9a7ec4af": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "78c0fc7b-5f9a-2827-4156-45dddbf84a88": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "5a64fd0f-6d66-ad3f-d3d4-8bb183e8d6d2": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "58368303-b666-44d2-a2f8-88abb903de3b": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/osa.webp",
+    "37cdab8b-9b83-4656-847b-a3f74c8164bd": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "2fa57038-d13d-4120-819c-224055a08b81": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "20426348-26b4-48ec-a45a-704204893662": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "1700d00c-d5bb-4d45-cf7a-3881c56285ee": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "11b573de-01b7-4e39-98ba-4e434089005c": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "0329afd6-66ee-4f93-a733-6a62b1cc7398": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "00df2eb3-1371-4fe4-917e-c5d579c7be1f": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/iq.webp",
+    "bf43d136-f5b6-2a99-c6a9-3e4e2d8d8497": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "bbefcb0a-cf66-a2f7-4a03-d99c034829a1": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "b33b9745-ce18-6484-dd74-02ab3a22103d": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "deb82ece-6139-4da8-25ab-6eed3f58d936": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/ela.webp",
+    "cc008c00-4f01-97e0-5c52-6e253999c3df": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "a0fa9f4a-46e4-08eb-18bf-d6bf90ce4a95": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "8ac90c3f-e657-c30f-feb6-69a4c863bf76": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/frost.webp",
+    "24d44df4-8748-1362-7d42-ec354cdc9284": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/grim.webp",
+    "d2e78803-6ee1-7db9-68ac-26b5ecdf50ef": "https://cdn.jsdelivr.net/gh/danielwerg/r6data@master/src/assets/operators/figures/ela.webp"
+  }
+}

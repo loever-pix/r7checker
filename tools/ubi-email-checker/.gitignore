@@ -1,0 +1,7 @@
+node_modules/
+dist/
+checker.bundle.js
+sea-prep.blob
+ubisoft_checker_*/
+proxies.txt
+*.log

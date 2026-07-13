@@ -1,0 +1,5 @@
+{
+  "main": "checker.obf.js",
+  "output": "sea-prep.blob",
+  "disableExperimentalSEAWarning": true
+}

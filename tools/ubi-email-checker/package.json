@@ -1,0 +1,36 @@
+{
+  "name": "ubi-email-checker",
+  "version": "1.0.0",
+  "description": "Standalone Ubisoft account-existence checker — sorts email lists into valid/invalid with proxy rotation.",
+  "main": "checker.js",
+  "bin": {
+    "ubi-email-checker": "checker.js"
+  },
+  "scripts": {
+    "start": "node checker.js",
+    "bundle": "esbuild checker.js --bundle --platform=node --target=node20 --outfile=checker.bundle.js",
+    "build": "node build-sea.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "chalk": "^4.1.2",
+    "cli-progress": "^3.12.0",
+    "fs-extra": "^11.2.0",
+    "http-proxy-agent": "^7.0.2",
+    "https-proxy-agent": "^7.0.5"
+  },
+  "devDependencies": {
+    "esbuild": "^0.23.1",
+    "postject": "^1.0.0-alpha.6"
+  },
+  "pkg": {
+    "comment": "pkg config kept for users who prefer it; the working build path here is Node SEA (npm run build). For pkg: npx pkg checker.js --targets node18-win-x64 --output dist/ubi-email-checker.exe",
+    "targets": [
+      "node18-win-x64"
+    ],
+    "outputPath": "dist"
+  },
+  "allowScripts": {
+    "esbuild@0.23.1": true
+  }
+}

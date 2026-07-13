@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>R6Checker — My listings</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<meta name="theme-color" content="#080b14">
+<link rel="icon" type="image/png" href="/img/logo.png">
+<style>
+  :root {
+    --bg:#080b14; --panel:#111827; --panel2:#0f1830; --line:#1e2842;
+    --text:#e7ecf6; --dim:#8593ad; --brand:#3a8dff; --brand2:#5aa3ff;
+    --ok:#42cb6e; --bad:#ff5c6c; --gold:#f0c75a;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5;
+    background-image:radial-gradient(circle at 0% 0%,rgba(58,141,255,.08),transparent 60%);background-attachment:fixed;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+
+  /* Nav */
+  .nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:rgba(8,11,20,.85);border-bottom:1px solid var(--line)}
+  .nav-in{max-width:1280px;margin:0 auto;padding:.75rem 1rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+  .brand{display:inline-flex;align-items:center;gap:.5rem;font-weight:800;text-decoration:none;color:var(--text)}
+  .brand img{width:26px;height:26px}
+  .brand-dot{color:#cad3dc}
+  .nav-links{margin-left:auto;display:flex;gap:.25rem;flex-wrap:wrap}
+  .nav-links a{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .8rem;border-radius:7px;color:var(--dim);
+    text-decoration:none;font-size:.86rem;font-weight:500;transition:background .15s,color .15s;border:1px solid transparent}
+  .nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+  .nav-links a.act{color:var(--text);background:rgba(58,141,255,.12);border-color:rgba(58,141,255,.3)}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;border:1px solid transparent;
+    background:var(--brand);color:#fff;font-weight:600;font-size:.9rem;line-height:1;padding:.65rem 1rem;border-radius:8px;
+    cursor:pointer;text-decoration:none;transition:background .15s,transform .05s;font-family:inherit;white-space:nowrap}
+  .btn:hover{background:var(--brand2)} .btn:active{transform:translateY(1px)}
+  .btn:disabled{background:#1e2842;color:var(--dim);cursor:not-allowed}
+  .btn.ghost{background:transparent;color:var(--text);border-color:var(--line)}
+  .btn.ghost:hover{background:rgba(255,255,255,.04)}
+  .btn.sm{padding:.45rem .75rem;font-size:.8rem}
+  .btn.danger{background:transparent;color:var(--bad);border-color:rgba(255,92,108,.4)}
+  .btn.danger:hover{background:rgba(255,92,108,.08);border-color:var(--bad)}
+
+  /* Page */
+  main{max-width:980px;margin:0 auto;padding:1.5rem 1rem 4rem}
+  h1{font-size:clamp(1.4rem,3.5vw,1.85rem);margin:0 0 .35rem;letter-spacing:-.015em;font-weight:800}
+  .lede{color:var(--dim);margin:0 0 1.4rem;font-size:.95rem}
+  .actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.1rem}
+
+  /* Table-ish list */
+  .panel{background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);border:1px solid var(--line);
+    border-radius:12px;overflow:hidden}
+  .row{display:grid;grid-template-columns:48px 1.4fr 80px 90px 1fr 110px;gap:.7rem;align-items:center;
+    padding:.8rem 1rem;border-top:1px solid var(--line);font-size:.88rem}
+  .row.head{border-top:none;background:rgba(255,255,255,.025);font-size:.7rem;color:var(--dim);
+    text-transform:uppercase;letter-spacing:.07em;padding:.65rem 1rem;font-weight:700}
+  .avatar{width:38px;height:38px;border-radius:50%;background:#0b1220;border:1px solid var(--line);object-fit:cover}
+  .acct-name{font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .acct-sub{font-size:.74rem;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tag{font-size:.7rem;font-weight:800;padding:.18rem .5rem;border-radius:5px;display:inline-block;letter-spacing:.04em}
+  .tag.fa{background:rgba(66,203,110,.15);color:var(--ok)}
+  .tag.nfa{background:rgba(240,199,90,.15);color:var(--gold)}
+  .price{font-weight:700;color:#fff}
+  .status{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;display:inline-flex;align-items:center;gap:.35rem}
+  .status::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+  .status.active{color:var(--ok)}
+  .status.pending{color:var(--gold)}
+  .status.sold{color:var(--brand)}
+  .status.cancelled{color:var(--dim)}
+  .ch{font-size:.72rem;color:var(--dim);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;margin-top:.2rem;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .actions-col{display:flex;justify-content:flex-end}
+
+  .empty{padding:3rem 1.5rem;text-align:center;color:var(--dim);background:var(--panel);border:1px dashed var(--line);border-radius:12px}
+  .empty h3{color:var(--text);margin:0 0 .5rem;font-size:1.1rem}
+  .empty p{margin:0 0 1rem}
+  .gate{border:1px solid rgba(255,92,108,.35);background:linear-gradient(180deg,rgba(255,92,108,.07) 0%,transparent 100%);
+    border-radius:12px;padding:1.2rem;margin-bottom:1.2rem}
+  .gate h3{margin:0 0 .4rem;font-size:1.05rem}
+  .gate p{margin:0 0 .8rem;color:var(--dim);font-size:.92rem}
+
+  /* Mobile — switch to vertical cards */
+  @media (max-width:680px){
+    .nav-in{padding:.55rem .75rem;gap:.35rem}
+    .nav-links{gap:.1rem;flex:1;justify-content:flex-end}
+    .nav-links a{padding:.4rem .55rem;font-size:.8rem}
+    main{padding:1rem .75rem 3rem}
+    .row.head{display:none}
+    .row{grid-template-columns:42px 1fr;grid-template-areas:
+      "av main"
+      "av meta"
+      ".  status"
+      ".  actions";
+      gap:.4rem .8rem;padding:1rem;border-top:1px solid var(--line)}
+    .row .col-av{grid-area:av}
+    .row .col-main{grid-area:main}
+    .row .col-meta{grid-area:meta;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+    .row .col-status{grid-area:status}
+    .row .col-actions{grid-area:actions;justify-content:flex-start}
+    .row .col-actions .btn{width:100%}
+  }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="/"><img src="/img/logo.png" alt=""><span>R6CHECKER<span class="brand-dot">.XYZ</span></span></a>
+    <div class="nav-links">
+      <a href="/marketplace">🛒 Marketplace</a>
+      <a href="/marketplace/sell">Sell</a>
+      <a href="/marketplace/mine" class="act">My listings</a>
+      <a href="/bulk">Bulk</a>
+      <a href="/account">Account</a>
+    </div>
+  </div>
+</nav>
+<main>
+  <h1>My listings</h1>
+  <p class="lede">Your sell-side activity. Cancel an active listing any time. When a buyer hits <b style="color:var(--text)">Buy</b>, the listing flips to <b style="color:var(--text)">sold</b> and a private Discord channel opens with both of you.</p>
+
+  <div class="actions">
+    <a class="btn" href="/marketplace/sell">+ New listing</a>
+    <a class="btn ghost" href="/marketplace">← Browse marketplace</a>
+  </div>
+
+  <div id="container"></div>
+</main>
+<script>
+const $ = (q) => document.querySelector(q);
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const fmt$ = (c) => '$' + (c/100).toFixed(2);
+
+async function load() {
+  const c = $('#container');
+  c.innerHTML = '<div class="empty"><p>Loading…</p></div>';
+  let r, data;
+  try { r = await fetch('/api/mp/my', { cache:'no-store' }); data = await r.json(); }
+  catch (e) { c.innerHTML = `<div class="empty"><h3>Network problem</h3><p>${e.message}</p></div>`; return; }
+
+  if (r.status === 401) {
+    c.innerHTML = `
+      <div class="gate">
+        <h3>You need to sign in</h3>
+        <p>Sign in to your r6checker account to manage your listings.</p>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <a class="btn"       href="/account/login?return_to=/marketplace/mine">Sign in →</a>
+          <a class="btn ghost" href="/account/signup?return_to=/marketplace/mine">Create account</a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (!data.listings.length) {
+    c.innerHTML = `
+      <div class="empty">
+        <h3>No listings yet</h3>
+        <p>Pick an account you've checked here and post your first listing.</p>
+        <a class="btn" href="/marketplace/sell">+ Sell your first account</a>
+      </div>`;
+    return;
+  }
+
+  c.innerHTML = `
+    <div class="panel">
+      <div class="row head">
+        <div></div><div>Account</div><div>Access</div><div>Price</div><div>Status</div><div></div>
+      </div>
+      <div id="rows"></div>
+    </div>`;
+  const rows = $('#rows');
+  for (const l of data.listings) {
+    const p = l.profile || {};
+    const el = document.createElement('div');
+    el.className = 'row';
+    el.innerHTML = `
+      <div class="col-av"><img class="avatar" src="${escapeHtml(p.avatar || '/img/logo.png')}" alt="" onerror="this.src='/img/logo.png'"></div>
+      <div class="col-main">
+        <div class="acct-name">${escapeHtml(p.username || '(unknown)')}</div>
+        <div class="acct-sub">Lvl ${p.level ?? '?'} · ${escapeHtml(p.currentRank || 'unranked')}</div>
+      </div>
+      <div class="col-meta"><span class="tag ${l.accessType}">${l.accessType.toUpperCase()}</span> <span class="price">${fmt$(l.priceCents)}</span></div>
+      <div class="col-status"><span class="status ${l.status}">${l.status}</span>${l.channelId?`<div class="ch">#${l.channelId.slice(-12)}</div>`:''}</div>
+      <div class="col-actions actions-col">
+        ${l.status==='active'
+          ? `<button class="btn danger sm" data-cancel="${l.id}">Cancel</button>`
+          : `<a class="btn ghost sm" href="${escapeHtml(p.profileUrl||'#')}" target="_blank">View profile</a>`}
+      </div>
+    `;
+    rows.appendChild(el);
+  }
+  rows.querySelectorAll('[data-cancel]').forEach(b => b.addEventListener('click', async (ev) => {
+    if (!confirm('Cancel this listing?')) return;
+    ev.target.disabled = true;
+    try {
+      const r = await fetch(`/api/mp/${b.dataset.cancel}/cancel`, { method:'POST' });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'cancel failed');
+      load();
+    } catch (e) { alert('✗ ' + e.message); ev.target.disabled = false; }
+  }));
+}
+load();
+</script>
+</body>
+</html>

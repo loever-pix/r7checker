@@ -1,0 +1,32 @@
+{
+  "name": "r6-skin-locker",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "bot": "node bot.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "better-sqlite3": "^12.10.0",
+    "camoufox-js": "^0.10.2",
+    "compression": "^1.8.1",
+    "cycletls": "^2.0.5",
+    "discord.js": "^14.26.4",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.5.2",
+    "http-proxy-agent": "^9.0.0",
+    "https-proxy-agent": "^9.0.0",
+    "multer": "^2.1.1",
+    "node-fetch": "^2.7.0",
+    "nodemailer": "^8.0.10",
+    "playwright": "^1.60.0",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "socks-proxy-agent": "^10.0.0"
+  },
+  "devDependencies": {
+    "r6api.js": "^4.4.1"
+  }
+}

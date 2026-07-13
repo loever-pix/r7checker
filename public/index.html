@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R6Checker — Check any R6 inventory</title>
+  <meta name="description" content="See what skins, charms, and ranks any Rainbow Six Siege account owns. Free. Live history of every checked account.">
+
+  <!-- Rich link embed (Discord / Twitter / iMessage etc.) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="R6Checker">
+  <meta property="og:url" content="https://r6checker.xyz/">
+  <meta property="og:title" content="R6Checker — Check any R6 Siege inventory">
+  <meta property="og:description" content="See every skin, charm, elite and rank any Rainbow Six Siege account owns. Free.">
+  <meta property="og:image" content="https://r6checker.xyz/img/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="R6Checker — Check any R6 Siege inventory">
+  <meta name="twitter:description" content="See every skin, charm, elite and rank any Rainbow Six Siege account owns. Free.">
+  <meta name="twitter:image" content="https://r6checker.xyz/img/og.jpg">
+  <meta name="theme-color" content="#3a8dff">
+
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+      --brand:        #3a8dff;        /* electric blue from the logo */
+      --brand-soft:   #5aa3ff;
+      --brand-dim:    #1a4d99;
+      --discord:      #5865f2;
+      --bg:           #080b14;        /* deep navy from the banner */
+      --bg-card:      #111827;
+      --bg-card-hov:  #141d31;
+      --border:       #1e2842;
+      --border-bright:#2c3a5e;
+      --text:         #e7ecf6;
+      --text-dim:     #8593ad;
+      --text-very-dim:#4d5a72;
+      --cote:       #cad3dc;        /* Ayanokoji / Classroom of the Elite — cool silver */
+      --cote-dim:   #9aa7b8;
+    }
+    body.home-page { background:var(--bg); color:var(--text); font-family:'Inter',system-ui,-apple-system,sans-serif; min-height:100vh; margin:0; position:relative; }
+    /* Banner image as faint background — fixed so it doesn't scroll with content */
+    /* Subtle, restrained ambient lighting — no busy fan-art banner. */
+    body.home-page::after {
+      content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background-repeat:no-repeat; background-position:center top; background-size:cover;
+      background-image:
+        linear-gradient(180deg, rgba(8,11,20,.42) 0%, rgba(8,11,20,.82) 50%, var(--bg) 82%),
+        radial-gradient(900px circle at 50% -10%, rgba(58,141,255,.12), transparent 60%),
+        url('/img/ayanokoji/hero-1280.webp');
+    }
+    @media (min-width:760px) {
+      body.home-page::after {
+        background-image:
+          linear-gradient(180deg, rgba(8,11,20,.4) 0%, rgba(8,11,20,.8) 52%, var(--bg) 84%),
+          radial-gradient(900px circle at 50% -10%, rgba(58,141,255,.12), transparent 60%),
+          url('/img/ayanokoji/hero-2560.webp');
+      }
+    }
+
+    .topbar { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.5rem; border-bottom:1px solid var(--border); background:rgba(8,11,20,.85); backdrop-filter:blur(10px); position:sticky; top:0; z-index:50; }
+    .topbar .brand { display:flex; align-items:center; gap:.65rem; font-size:1.15rem; font-weight:800; color:var(--text); letter-spacing:.5px; text-decoration:none; }
+    .topbar .brand img { width:36px; height:36px; }
+    .topbar .brand .dot { color:var(--cote); }
+    .topbar .right { display:flex; gap:.6rem; align-items:center; }
+    /* Hamburger — hidden on desktop, shown on mobile (see media query). */
+    .nav-toggle { display:none; background:transparent; border:1px solid var(--border-bright);
+      color:var(--text); width:40px; height:40px; border-radius:9px; cursor:pointer;
+      align-items:center; justify-content:center; font-size:1.2rem; line-height:1; transition:.15s; }
+    .nav-toggle:hover { border-color:var(--cote); color:var(--cote); }
+    .pill { background:transparent; border:1px solid var(--border-bright); color:var(--text); padding:.55rem 1.1rem; border-radius:8px; font-size:.85rem; font-weight:500; cursor:pointer; text-decoration:none; transition:.15s; }
+    .pill:hover { background:var(--bg-card); border-color:var(--brand); }
+    .pill.primary { background:var(--brand); color:#fff; border-color:var(--brand); font-weight:600; }
+    .pill.primary:hover { background:var(--brand-soft); border-color:var(--brand-soft); }
+    .topbar .right .sep { width:1px; height:22px; background:var(--border); margin:0 .2rem; }
+    /* Discord avatar + logout sit inline (was wrapping the ✕ below the avatar) */
+    #me-slot { display:flex; align-items:center; gap:.4rem; }
+    #me-slot #logout-btn { padding:.45rem .6rem; line-height:1; font-size:.8rem; color:var(--text-dim); }
+    #me-slot #logout-btn:hover { color:var(--text); border-color:var(--err,#f87171); }
+
+    /* Discord button */
+    .discord-btn { position:relative; display:flex; align-items:center; gap:.5rem; background:var(--discord); color:#fff; padding:.55rem 1rem; border-radius:8px; text-decoration:none; font-size:.85rem; font-weight:600; transition:.15s; border:none; cursor:pointer; }
+    .discord-btn:hover { background:#4752c4; }
+    .discord-btn svg { width:18px; height:18px; }
+    .discord-avatar { width:24px; height:24px; border-radius:50%; }
+    .discord-tooltip { position:absolute; top:calc(100% + 10px); right:0; background:#111827; border:1px solid var(--border-bright); color:var(--text); padding:.7rem .9rem; border-radius:.5rem; font-size:.78rem; font-weight:400; line-height:1.45; opacity:0; pointer-events:none; transition:opacity .15s; box-shadow:0 8px 24px rgba(0,0,0,.6); z-index:60; width:260px; }
+    .discord-tooltip::before { content:''; position:absolute; top:-6px; right:18px; width:10px; height:10px; background:#111827; border-left:1px solid var(--border-bright); border-top:1px solid var(--border-bright); transform:rotate(45deg); }
+    .discord-btn:hover .discord-tooltip { opacity:1; }
+
+    /* Hero — clean, typographic, product-grade (no raster fan banner) */
+    .hero { position:relative; max-width:880px; margin:0 auto; padding:5rem 1.5rem 2rem; text-align:center; }
+    .hero .eyebrow { display:inline-flex; align-items:center; gap:.5rem; font-size:.74rem; font-weight:600; letter-spacing:.08em;
+      color:var(--cote); background:rgba(202,211,220,.06); border:1px solid rgba(202,211,220,.2);
+      padding:.35rem .85rem; border-radius:100px; margin-bottom:1.6rem; text-transform:uppercase; }
+    .hero .eyebrow .live-dot { width:7px; height:7px; border-radius:50%; background:#42cb6e; box-shadow:0 0 0 3px rgba(66,203,110,.18); }
+    .hero h1 { font-size:clamp(2.2rem,5.5vw,3.6rem); line-height:1.05; margin:0 0 1rem; color:var(--text); font-weight:800; letter-spacing:-.025em; text-shadow:0 2px 24px rgba(0,0,0,.55); }
+    .hero h1 .accent { color:var(--brand); }
+    .hero p { color:var(--text); margin:0 auto 2rem; font-size:1.12rem; line-height:1.55; max-width:560px; text-shadow:0 1px 12px rgba(0,0,0,.6); }
+    .hero-cta { display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap; margin-bottom:2.2rem; }
+    .btn-lg { display:inline-flex; align-items:center; gap:.5rem; padding:.85rem 1.6rem; border-radius:10px; font-size:.98rem;
+      font-weight:600; text-decoration:none; border:1px solid transparent; transition:background .15s,border-color .15s,transform .05s; }
+    .btn-lg.primary { background:var(--brand); color:#fff; }
+    .btn-lg.primary:hover { background:var(--brand-soft); }
+    .btn-lg.primary:active { transform:translateY(1px); }
+    .btn-lg.secondary { background:transparent; color:var(--text); border-color:var(--border-bright); }
+    .btn-lg.secondary:hover { background:var(--bg-card); border-color:var(--brand); }
+    /* Feature row — replaces the icons baked into the old banner */
+    .feature-row { display:flex; gap:1.8rem; justify-content:center; flex-wrap:wrap; color:var(--text-dim); font-size:.86rem; }
+    .feature-row span { display:inline-flex; align-items:center; gap:.45rem; }
+    .feature-row .fi { color:var(--brand); font-weight:700; }
+
+    /* ── Ayanokoji animated showcase (Classroom of the Elite) ── */
+    .hero-show { position:relative; width:min(560px,92vw); margin:2.8rem auto .4rem;
+      border-radius:18px; overflow:hidden; background:#0b1220; line-height:0;
+      border:1px solid rgba(202,211,220,.16);
+      box-shadow:0 40px 90px -28px rgba(0,0,0,.85), 0 0 0 1px rgba(202,211,220,.04),
+                 inset 0 0 70px rgba(0,0,0,.35);
+      transition:transform .45s cubic-bezier(.2,.7,.2,1), box-shadow .45s; }
+    .hero-show:hover { transform:translateY(-5px);
+      box-shadow:0 52px 120px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(202,211,220,.12),
+                 0 0 70px -12px rgba(58,141,255,.28); }
+    .hero-show img { display:block; width:100%; height:auto; }
+    .hero-show .veil { position:absolute; inset:0; pointer-events:none;
+      background:linear-gradient(180deg, rgba(8,11,20,.04) 0%, transparent 32%, rgba(8,11,20,.5) 100%); }
+    .hero-show .cap { position:absolute; left:1.1rem; bottom:1rem; z-index:2; line-height:1;
+      display:flex; align-items:center; gap:.6rem; color:var(--cote);
+      font-size:.7rem; letter-spacing:.26em; text-transform:uppercase; font-weight:600;
+      text-shadow:0 1px 10px rgba(0,0,0,.95); }
+    .hero-show .cap::before { content:''; width:28px; height:1px; background:var(--cote); opacity:.7; }
+    .hero-show .live { position:absolute; right:.95rem; top:.95rem; z-index:2; line-height:1;
+      display:inline-flex; align-items:center; gap:.42rem; padding:.32rem .62rem; border-radius:100px;
+      background:rgba(8,11,20,.5); backdrop-filter:blur(6px); border:1px solid rgba(202,211,220,.18);
+      font-size:.6rem; letter-spacing:.16em; text-transform:uppercase; color:var(--cote); font-weight:700; }
+    .hero-show .live i { width:6px; height:6px; border-radius:50%; background:#42cb6e;
+      box-shadow:0 0 0 3px rgba(66,203,110,.2); animation:livepulse 1.8s ease-in-out infinite; }
+    @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:.85rem; max-width:880px; margin:0 auto 3.5rem; padding:0 1.5rem; }
+    .stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:1.4rem 1.25rem; text-align:center; transition:border-color .15s,transform .15s; }
+    .stat-card:hover { border-color:var(--border-bright); transform:translateY(-2px); }
+    .stat-card .num { font-size:2rem; font-weight:800; color:var(--text); line-height:1; margin-bottom:.45rem; font-variant-numeric:tabular-nums; letter-spacing:-.02em; }
+    .stat-card .label { font-size:.7rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; font-weight:600; }
+
+    /* Recent checks */
+    .recent-section { max-width:1200px; margin:0 auto; padding:0 1.5rem 4rem; }
+    .recent-section h2 { color:var(--text); font-size:.85rem; margin:1rem 0 1rem; letter-spacing:2px; font-weight:700; text-transform:uppercase; display:flex; align-items:center; gap:.6rem; }
+    .recent-section h2::before { content:''; width:4px; height:18px; background:var(--brand); border-radius:2px; }
+    .recent-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:.75rem; }
+    .recent-item { background:var(--bg-card); border:1px solid var(--border); border-radius:.6rem; padding:.85rem 1rem; display:flex; align-items:center; gap:.85rem; transition:.15s; text-decoration:none; color:var(--text); }
+    .recent-item:hover { border-color:var(--brand); background:var(--bg-card-hov); transform:translateY(-1px); box-shadow:0 4px 16px rgba(58,141,255,.15); }
+    .recent-item img.avatar { width:44px; height:44px; border-radius:50%; background:var(--bg); flex-shrink:0; border:1px solid var(--border); }
+    .recent-item .info { flex:1; min-width:0; }
+    .recent-item .name { color:var(--text); font-weight:700; font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .recent-item .meta { color:var(--text-dim); font-size:.75rem; margin-top:.2rem; }
+    .recent-item .rank { color:var(--brand); font-size:.78rem; font-weight:600; margin-top:.2rem; }
+    .recent-item .checker { display:flex; align-items:center; gap:.35rem; margin-top:.35rem; padding-top:.35rem; border-top:1px solid var(--border); color:#9aa6c5; font-size:.72rem; }
+    .recent-item .checker img { width:16px; height:16px; border-radius:50%; }
+    .recent-item .checker .discord-dot { width:8px; height:8px; border-radius:50%; background:var(--discord); flex-shrink:0; }
+
+    .empty { text-align:center; color:var(--text-very-dim); padding:3rem 1rem; font-style:italic; background:var(--bg-card); border:1px dashed var(--border); border-radius:.5rem; grid-column:1/-1; }
+
+    footer { text-align:center; padding:2rem 1rem; color:var(--text-very-dim); font-size:.8rem; border-top:1px solid var(--border); }
+    footer a { color:var(--brand-soft); text-decoration:none; }
+    footer a:hover { text-decoration:underline; }
+
+    @media (max-width:680px) {
+      /* Topbar: clean hamburger menu instead of a sliding pill row. The
+         links collapse into a tap-to-open dropdown panel under the bar. */
+      .nav-toggle { display:inline-flex; }
+      .topbar { padding:.7rem .9rem; gap:.5rem; flex-wrap:nowrap; }
+      .topbar .brand { font-size:1rem; }
+      .topbar .brand img { width:30px; height:30px; }
+      .topbar .right {
+        position:absolute; top:100%; left:0; right:0;
+        flex-direction:column; align-items:stretch; gap:.45rem;
+        background:rgba(8,11,20,.97); backdrop-filter:blur(14px);
+        border-bottom:1px solid var(--border); padding:.85rem .9rem 1.1rem;
+        box-shadow:0 18px 34px rgba(0,0,0,.45); display:none;
+      }
+      .topbar.open .right { display:flex; }
+      .topbar .right .pill, .topbar .right .discord-btn { width:100%; justify-content:center; white-space:nowrap; }
+      .pill { padding:.7rem 1rem; font-size:.9rem; }
+      .topbar .right .sep { display:none; }
+      #me-slot { justify-content:center; }
+
+      .hero { padding:2.5rem 1.2rem 1.5rem; }
+      .hero .eyebrow { margin-bottom:1.1rem; }
+      .hero h1 { font-size:clamp(1.7rem,8vw,2.3rem); }
+      .hero p { font-size:1rem; margin-bottom:1.6rem; }
+      .hero-cta { gap:.6rem; }
+      .hero-cta .btn-lg { flex:1 1 100%; justify-content:center; }
+      .feature-row { gap:.5rem 1.1rem; font-size:.82rem; }
+
+      .stats-row { grid-template-columns:repeat(2,1fr); gap:.6rem; padding:0 1.1rem; margin-bottom:2.5rem; }
+      .stat-card { padding:1.1rem .9rem; }
+      .stat-card .num { font-size:1.6rem; }
+      .recent-section { padding:0 1.1rem 3rem; }
+      .recent-list { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body class="home-page">
+  <div class="topbar">
+    <a href="/" class="brand">
+      <img src="/img/logo.png" alt="" onerror="this.style.display='none'">
+      <span>R6CHECKER<span class="dot">.XYZ</span></span>
+    </a>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false">☰</button>
+    <div class="right" id="nav-right">
+      <a href="/marketplace" class="pill">Marketplace</a>
+      <a href="/download" class="pill">Desktop app</a>
+      <a href="/bulk" class="pill" id="bulk-link" style="display:none">Bulk check</a>
+      <span class="sep"></span>
+      <a href="/account" class="pill" id="account-link" style="display:none">My account</a>
+      <a href="/account/login" class="pill" id="signin-link">Sign in</a>
+      <a href="/login" class="pill primary">Check account</a>
+      <div id="me-slot"></div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow"><span class="live-dot"></span> Free · No login required to view</div>
+    <h1>See what <span class="accent">anyone</span> owns</h1>
+    <p>Skins, charms, elites, ranked history and season peaks for any Rainbow Six Siege account — instantly.</p>
+    <div class="hero-cta">
+      <a href="/login" class="btn-lg primary">Check an account →</a>
+      <a href="/download" class="btn-lg secondary">Download desktop app</a>
+    </div>
+    <div class="feature-row">
+      <span><span class="fi">✓</span> Accurate inventory</span>
+      <span><span class="fi">✓</span> Ban &amp; verification checks</span>
+      <span><span class="fi">✓</span> Full season history</span>
+      <span><span class="fi">✓</span> Instant results</span>
+    </div>
+    <div class="hero-show">
+      <picture>
+        <source srcset="/img/ayanokoji/scene.webp" type="image/webp">
+        <img src="/img/ayanokoji/scene.gif" alt="" onerror="this.closest('.hero-show').style.display='none'">
+      </picture>
+      <span class="veil"></span>
+      <span class="live"><i></i> Live</span>
+      <span class="cap">Classroom of the Elite</span>
+    </div>
+  </div>
+
+  <div class="recent-section" style="border:none;padding-bottom:0">
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card"><div class="num" id="stat-unique">—</div><div class="label">Accounts Checked</div></div>
+      <div class="stat-card"><div class="num" id="stat-total">—</div><div class="label">Total Checks</div></div>
+      <div class="stat-card"><div class="num" id="stat-24h">—</div><div class="label">Last 24 Hours</div></div>
+      <div class="stat-card"><div class="num" id="stat-7d">—</div><div class="label">Last 7 Days</div></div>
+    </div>
+  </div>
+
+  <div class="recent-section">
+    <h2>RECENTLY CHECKED</h2>
+    <div id="recent-list" class="recent-list">
+      <div class="empty">Loading…</div>
+    </div>
+  </div>
+
+  <footer>
+    R6CHECKER.XYZ — Unofficial. Not affiliated with Ubisoft.
+    <span style="margin:0 .5rem">·</span>
+    <a href="/login">Check your account</a>
+    <span style="margin:0 .5rem">·</span>
+    <a href="https://discord.gg/gnPB2JBPS6" target="_blank" rel="noopener noreferrer">Support</a>
+    <span style="margin:0 .5rem">·</span>
+    <a href="/legal">Terms &amp; Privacy</a>
+  </footer>
+
+  <script>
+    function fmtAgo(ts) {
+      const d = (Date.now() - ts) / 1000;
+      if (d < 60)      return Math.floor(d) + 's ago';
+      if (d < 3600)    return Math.floor(d / 60) + 'm ago';
+      if (d < 86400)   return Math.floor(d / 3600) + 'h ago';
+      if (d < 604800)  return Math.floor(d / 86400) + 'd ago';
+      return new Date(ts).toLocaleDateString();
+    }
+    const escHtml = s => String(s).replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+
+    async function loadStats() {
+      try {
+        const s = await fetch('/api/stats').then(r => r.json());
+        document.getElementById('stat-unique').textContent = s.uniqueAccounts.toLocaleString();
+        document.getElementById('stat-total').textContent  = s.totalChecks.toLocaleString();
+        document.getElementById('stat-24h').textContent    = s.last24h.toLocaleString();
+        document.getElementById('stat-7d').textContent     = s.last7d.toLocaleString();
+      } catch {}
+    }
+
+    async function loadRecent() {
+      const list = document.getElementById('recent-list');
+      try {
+        const { checks } = await fetch('/api/recent?limit=30').then(r => r.json());
+        if (!checks.length) {
+          list.innerHTML = '<div class="empty">No accounts checked yet — be the first!</div>';
+          return;
+        }
+        list.innerHTML = checks.map(c => {
+          const safeUserId = encodeURIComponent(c.userId);
+          const avatarUrl = c.avatar || ('/api/img?url=' + encodeURIComponent('https://ubisoft-avatars.akamaized.net/' + c.userId + '/default_146_146.png'));
+          return `
+          <a href="/profile/${safeUserId}" class="recent-item">
+            <img class="avatar" src="${escHtml(avatarUrl)}" loading="lazy" alt="" onerror="this.style.opacity='.3'">
+            <div class="info">
+              <div class="name">${escHtml(c.username || c.userId)}</div>
+              <div class="meta">Lv ${escHtml(String(c.level || '?'))} · ${Number(c.itemsCount || 0)} items · ${escHtml(fmtAgo(c.lastCheckedAt))}</div>
+              ${c.currentRank ? `<div class="rank">${escHtml(c.currentRank)} · ${Number(c.currentMmr || 0)} RP</div>` : ''}
+              ${c.checkedBy ? `<div class="checker"><span class="discord-dot"></span><img src="${escHtml(c.checkedBy.avatar)}" alt="">Checked by ${escHtml(c.checkedBy.username)}</div>` : ''}
+            </div>
+          </a>`;
+        }).join('');
+      } catch {
+        list.innerHTML = '<div class="empty">Failed to load recent checks.</div>';
+      }
+    }
+
+    async function loadMe() {
+      const slot = document.getElementById('me-slot');
+      try {
+        const { user, oauthConfigured } = await fetch('/api/me').then(r => r.json());
+        if (!oauthConfigured) { slot.innerHTML = ''; return; }
+        if (user) {
+          slot.innerHTML = `
+            <div class="discord-btn">
+              <img class="discord-avatar" src="${escHtml(user.avatar)}" alt="">
+              <span>${escHtml(user.username)}</span>
+              <span class="discord-tooltip">You're signed in. Profiles you check will be tagged with your Discord username so others can find &amp; add you.</span>
+            </div>
+            <button class="pill" id="logout-btn" title="Sign out">✕</button>
+          `;
+          document.getElementById('logout-btn').onclick = async () => {
+            await fetch('/auth/logout', { method: 'POST' });
+            location.reload();
+          };
+        } else {
+          slot.innerHTML = `
+            <a class="discord-btn" href="/auth/discord">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.444.864-.608 1.249a18.27 18.27 0 0 0-5.487 0 12.65 12.65 0 0 0-.617-1.249.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+              <span>Connect Discord</span>
+              <span class="discord-tooltip">Connect Discord so the accounts you check get tagged with your username. People can then find &amp; add you on Discord from the profiles you've reviewed.</span>
+            </a>
+          `;
+        }
+      } catch {}
+    }
+
+    // Site account (separate from Discord) — toggle nav links.
+    async function loadSiteMe() {
+      try {
+        const { user } = await fetch('/api/auth/me').then(r => r.json());
+        if (user) {
+          document.getElementById('bulk-link').style.display = '';
+          document.getElementById('account-link').style.display = '';
+          document.getElementById('signin-link').style.display = 'none';
+        }
+      } catch {}
+    }
+
+    // Mobile hamburger menu toggle.
+    (function(){
+      const t = document.getElementById('nav-toggle');
+      const bar = document.querySelector('.topbar');
+      if (!t || !bar) return;
+      const close = () => { bar.classList.remove('open'); t.setAttribute('aria-expanded','false'); t.textContent='☰'; };
+      t.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = bar.classList.toggle('open');
+        t.setAttribute('aria-expanded', open ? 'true' : 'false');
+        t.textContent = open ? '✕' : '☰';
+      });
+      // Tapping a link or anywhere outside closes the menu.
+      document.getElementById('nav-right').addEventListener('click', (e) => { if (e.target.closest('a')) close(); });
+      document.addEventListener('click', (e) => { if (!bar.contains(e.target)) close(); });
+    })();
+
+    loadStats(); loadRecent(); loadMe(); loadSiteMe();
+    setInterval(loadStats, 30_000);
+    setInterval(loadRecent, 30_000);
+  </script>
+  <script src="/discord-popup.js" defer></script>
+</body>
+</html>

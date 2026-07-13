@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R6Checker — Desktop Checker</title>
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <style>
+    :root{--brand:#3a8dff;--brand-soft:#5aa3ff;--bg:#080b14;--bg-card:#111827;--bg2:#0b1220;
+      --border:#1e2842;--border-bright:#2c3a5e;--text:#e7ecf6;--text-dim:#8593ad;--ok:#34d399;--err:#f87171;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:system-ui,'Segoe UI',sans-serif;line-height:1.5;
+      min-height:100vh;padding:1.5rem 1rem;
+      background-image:radial-gradient(circle at 20% 0%,rgba(58,141,255,.12),transparent 55%);}
+    body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background-repeat:no-repeat;background-position:center top;background-size:cover;
+      background-image:linear-gradient(180deg,rgba(8,11,20,.88),rgba(8,11,20,.94) 58%,var(--bg) 88%),
+        url('/img/ayanokoji/hero-1280.webp');}
+    .wrap{max-width:860px;margin:0 auto;position:relative;}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.6rem;}
+    .top a{color:var(--text-dim);text-decoration:none;font-size:.88rem;}
+    .top a:hover{color:var(--brand-soft);}
+    h1{font-size:1.9rem;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,#fff,var(--brand-soft));
+      -webkit-background-clip:text;background-clip:text;color:transparent;}
+    h1 .dot{color:#cad3dc;-webkit-text-fill-color:#cad3dc;}
+    .lede{color:var(--text-dim);margin:.4rem 0 1.6rem;}
+    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.4rem;margin-bottom:1.2rem;box-shadow:0 8px 40px rgba(0,0,0,.3);}
+    .step{display:flex;gap:1rem;align-items:flex-start;}
+    .num{flex:none;width:30px;height:30px;border-radius:50%;background:rgba(58,141,255,.14);color:var(--brand-soft);
+      display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;}
+    .step h3{font-size:1rem;margin-bottom:.2rem;}
+    .step p{color:var(--text-dim);font-size:.9rem;}
+    .step+.step{margin-top:1.1rem;}
+    .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-top:1rem;}
+    @media(max-width:560px){.plans{grid-template-columns:1fr;}}
+    @media(max-width:640px){
+      body{padding:1.2rem .85rem;}
+      h1{font-size:1.55rem;}
+      .card{padding:1.1rem;}
+      .step{gap:.75rem;}
+      /* Download buttons go full-width (their parent is a flex row) so
+         they're easy thumb targets instead of two cramped pills. */
+      .btn{flex:1 1 100%;text-align:center;justify-content:center;}
+    }
+    .plan{background:var(--bg2);border:1px solid var(--border-bright);border-radius:11px;padding:1rem;cursor:pointer;
+      text-align:left;color:var(--text);transition:.15s;}
+    .plan:hover{border-color:var(--brand);transform:translateY(-2px);}
+    .plan:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    .plan .n{color:var(--text-dim);font-size:.8rem;text-transform:capitalize;}
+    .plan .p{font-size:1.3rem;font-weight:800;}
+    .plan .d{color:var(--brand-soft);font-size:.75rem;}
+    .plan .deal{color:var(--ok);font-size:.7rem;}
+    .btn{display:inline-block;padding:.8rem 1.6rem;background:linear-gradient(135deg,var(--brand),#2f74d8);color:#fff;
+      border:none;border-radius:10px;font-weight:700;font-size:.95rem;cursor:pointer;text-decoration:none;box-shadow:0 4px 16px rgba(58,141,255,.3);}
+    .btn:hover{background:linear-gradient(135deg,var(--brand-soft),var(--brand));}
+    .btn.alt{background:transparent;border:1px solid var(--border-bright);box-shadow:none;color:var(--text);}
+    .status{font-size:.85rem;padding:.5rem .8rem;border-radius:999px;display:inline-flex;gap:.4rem;align-items:center;}
+    .status.on{background:rgba(52,211,153,.1);color:var(--ok);border:1px solid rgba(52,211,153,.3);}
+    .status.off{background:rgba(248,113,113,.1);color:var(--err);border:1px solid rgba(248,113,113,.3);}
+    .msg{font-size:.85rem;margin-top:.6rem;min-height:1em;}
+    .msg.err{color:var(--err);} .msg.ok{color:var(--ok);}
+    code{background:var(--bg2);padding:.1rem .4rem;border-radius:5px;font-size:.85rem;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a href="/">← Home</a>
+    <div><a href="/account">My account</a></div>
+  </div>
+  <h1>R6Checker<span class="dot">.</span> Desktop</h1>
+  <p class="lede">Blazing bulk account checker for your PC. Runs through <b>your own proxies</b>, fully unlimited while your access pass is active.</p>
+
+  <div class="card">
+    <div id="access" class="status off">● checking access…</div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:1rem;">Get started</h3>
+    <div class="step"><div class="num">1</div><div><h3>Create an account</h3><p>Sign up (or log in) on the website. <a href="/account" style="color:var(--brand-soft)">Account portal →</a></p></div></div>
+    <div class="step"><div class="num">2</div><div><h3>Buy an access pass</h3><p>Pick a plan below. Pay with crypto or card. Daily, weekly, or monthly — weekly &amp; monthly are deals.</p>
+      <!-- Payment method selector. 'crypto' default; 'card' → Whop. -->
+      <div style="margin:.4rem 0 .6rem;display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem">
+        <label style="display:flex;gap:.35rem;align-items:center;cursor:pointer">
+          <input type="radio" name="dl-provider" value="crypto" checked> Crypto (NOWPayments)
+        </label>
+        <label style="display:flex;gap:.35rem;align-items:center;cursor:pointer">
+          <input type="radio" name="dl-provider" value="card"> Card / Apple Pay / Google Pay (Whop)
+        </label>
+      </div>
+      <div class="plans" id="plans"></div>
+      <div class="msg" id="buy-msg"></div>
+    </div></div>
+    <div class="step"><div class="num">3</div><div><h3>Get your key by email</h3><p>Right after payment we email your <b>license key</b>. It's locked to one PC.</p></div></div>
+    <div class="step"><div class="num">4</div><div><h3>Download &amp; run</h3><p>Download a checker, drop your <code>accounts.txt</code> + <code>proxies.txt</code> next to it, run it, and paste your key.</p>
+      <div style="margin-top:.8rem;padding:.9rem 1rem;border:1px solid var(--border);border-radius:10px;background:rgba(240,199,90,0.06);color:var(--text-dim);font-size:.9rem;">
+        ⏳ <b>Downloads temporarily disabled</b> while we upgrade the licensing system.
+        Server-side (BYO-proxy web checker) works as usual — start a job on the
+        <a href="/bulk" style="color:var(--brand-soft)">Bulk page</a>.
+      </div>
+      <p style="margin-top:.5rem;font-size:.85rem;color:var(--muted,#888);"><b>R6Checker</b> — full bulk checker (ranks · skins · ban · last-played). <b>Ubisoft VM</b> — fast login validator only (valid · invalid · 2FA · banned).</p>
+    </div></div>
+  </div>
+</div>
+<script>
+  async function load(){
+    try{
+      const r = await fetch('/api/subscription',{cache:'no-store'});
+      if(r.status===401||r.status===403){ document.getElementById('access').outerHTML='<a class="status off" href="/account" style="text-decoration:none">● Log in to buy &amp; see your access</a>'; }
+      const d = await r.json().catch(()=>({}));
+      const a = document.getElementById('access');
+      if(a && d.subscription){ const s=d.subscription;
+        if(s.active){ a.className='status on'; const days=Math.ceil(s.msLeft/86400000); a.textContent='● Access active — '+s.plan+', ~'+days+' day(s) left'; }
+        else { a.className='status off'; a.textContent='● No active access — buy a pass below'; }
+      }
+      const plansEl=document.getElementById('plans');
+      for(const [id,p] of Object.entries(d.plans||{})){
+        const dayRate=(d.plans.daily||{}).usd;
+        const saved=(dayRate&&p.days>1)?Math.round((1-p.usd/(dayRate*p.days))*100):0;
+        const b=document.createElement('button'); b.className='plan';
+        b.innerHTML='<div class="n">'+id+'</div><div class="p">$'+p.usd+'</div><div class="d">'+p.days+' day'+(p.days>1?'s':'')+'</div>'+(saved>0?'<div class="deal">save '+saved+'%</div>':'');
+        b.onclick=async()=>{ b.disabled=true; const m=document.getElementById('buy-msg'); m.className='msg';
+          const provider=(document.querySelector('input[name="dl-provider"]:checked')||{}).value||'crypto';
+          try{ const rr=await fetch('/api/subscription/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:id,provider})});
+            const jj=await rr.json(); if(jj.invoiceUrl) location.href=jj.invoiceUrl; else { m.className='msg err'; m.textContent=jj.error||'Could not start payment. Log in first.'; b.disabled=false; }
+          }catch(e){ m.className='msg err'; m.textContent='Network error: '+e.message; b.disabled=false; } };
+        plansEl.appendChild(b);
+      }
+    }catch(e){}
+  }
+  load();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "main": "main.bundle.js",
+  "output": "sea-prep.blob",
+  "disableExperimentalSEAWarning": true,
+  "useSnapshot": false,
+  "useCodeCache": false,
+  "assets": {
+    "check-worker": "worker.bundle.js",
+    "art": "art.txt",
+    "art-sm": "art-sm.txt"
+  }
+}

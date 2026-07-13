@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R6Checker — My account</title>
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    :root{
+      --brand:#3a8dff; --brand-soft:#5aa3ff;
+      --bg:#080b14; --bg-card:#111827; --bg-card-hov:#141d31;
+      --border:#1e2842; --border-bright:#2c3a5e;
+      --text:#e7ecf6; --text-dim:#8593ad;
+      --ok:#34d399; --warn:#ffb13a; --err:#f87171;
+    }
+    body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;
+         min-height:100vh;margin:0;padding:1.5rem 1rem;}
+    body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background-repeat:no-repeat;background-position:center top;background-size:cover;
+      background-image:linear-gradient(180deg,rgba(8,11,20,.9),rgba(8,11,20,.95) 58%,var(--bg) 88%),
+        radial-gradient(900px circle at 50% -10%,rgba(58,141,255,.10),transparent 60%),
+        url('/img/ayanokoji/hero-1280.webp');}
+    .wrap{max-width:780px;margin:0 auto;}
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;}
+    .topbar a{color:var(--text-dim);text-decoration:none;font-size:.88rem;}
+    .topbar a:hover{color:var(--brand-soft);}
+    h1{font-size:1.8rem;font-weight:800;margin:.2rem 0 .6rem;letter-spacing:-.02em;}
+    h1 .dot{color:#cad3dc;}
+    h2{font-size:1rem;font-weight:600;color:var(--text);margin:1.5rem 0 .7rem;
+       letter-spacing:.02em;text-transform:uppercase;font-size:.78rem;color:var(--text-dim);}
+    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;
+          padding:1.3rem;}
+    .bal-row{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;}
+    .balance{font-size:2.4rem;font-weight:800;color:var(--brand);letter-spacing:-.02em;}
+    .balance .cur{color:var(--text-dim);font-size:1.4rem;font-weight:600;margin-right:.3rem;}
+    .meta{color:var(--text-dim);font-size:.82rem;line-height:1.55;}
+    .meta b{color:var(--text);}
+    .deposit-form{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;}
+    .deposit-form input{flex:1;min-width:120px;padding:.75rem .9rem;background:#0b1220;
+                        border:1px solid var(--border);color:var(--text);border-radius:8px;
+                        font-size:1rem;outline:none;transition:border-color .15s,box-shadow .15s;}
+    .deposit-form input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(58,141,255,.15);}
+    .btn{padding:.65rem 1.2rem;background:var(--brand);color:#fff;border:none;border-radius:6px;
+         font-weight:600;font-size:.95rem;cursor:pointer;}
+    .btn:hover{background:var(--brand-soft);}
+    .btn:disabled{opacity:.55;cursor:wait;}
+    .btn.alt{background:transparent;border:1px solid var(--border-bright);color:var(--text);}
+    .btn.alt:hover{background:var(--bg-card-hov);}
+    .row{display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;
+         border-bottom:1px solid var(--border);font-size:.85rem;}
+    .row:last-child{border-bottom:0;}
+    .row .l{color:var(--text);}
+    .row .r{color:var(--text-dim);font-variant-numeric:tabular-nums;}
+    .row .r.pos{color:var(--ok);}
+    .row .r.neg{color:var(--err);}
+    .empty{color:var(--text-dim);font-size:.85rem;text-align:center;padding:.8rem 0;}
+    .actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;}
+    .err-msg{color:var(--err);font-size:.85rem;margin-top:.6rem;min-height:1em;}
+    @media(max-width:640px){
+      body{padding:1rem .8rem;}
+      .card{padding:1rem;border-radius:10px;}
+      h1{font-size:1.5rem;}
+      .deposit-form{flex-wrap:wrap;}
+      .deposit-form input,.deposit-form .btn{width:100%;flex:1 1 100%;}
+      .deposit-form input{font-size:16px;}
+      .row{flex-wrap:wrap;gap:.2rem .6rem;font-size:.86rem;}
+      .actions .btn{flex:1 1 100%;}
+      /* Topbar: nav links wrap to a tidy row under the Home link. */
+      .topbar{flex-wrap:wrap;gap:.4rem .9rem;}
+      .topbar>div{display:flex;flex-wrap:wrap;gap:.3rem .9rem;width:100%;}
+      .topbar>div a{margin-right:0 !important;font-size:.85rem;}
+      /* Bulk-job rows: label on top, the download/action links wrap below
+         left-aligned instead of getting crushed against the right edge. */
+      .row{align-items:flex-start;}
+      .row .l{flex:1 1 100%;}
+      .row .r{flex:1 1 100%;text-align:left;display:flex;flex-wrap:wrap;gap:.15rem .5rem;}
+      .row .r a{margin-left:0 !important;}
+      .bal-row{gap:.6rem;}
+      .balance{font-size:2rem;}
+    }
+    .ok-msg{color:var(--ok);font-size:.85rem;margin-top:.6rem;min-height:1em;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a href="/">← Home</a>
+      <div>
+        <a href="/admin" id="owner-link" style="margin-right:1rem;display:none;color:#34d399">📊 Dashboard</a>
+        <a href="/marketplace" style="margin-right:1rem">🛒 Marketplace</a>
+        <a href="/bulk" style="margin-right:1rem">Bulk checker →</a>
+        <a href="#" id="logout">Sign out</a>
+      </div>
+    </div>
+
+    <h1>My account<span class="dot">.</span></h1>
+    <p class="meta" id="who">Loading…</p>
+
+    <div class="card" style="margin-top:1.2rem">
+      <div class="bal-row">
+        <div>
+          <div style="font-size:.78rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;">Balance</div>
+          <div class="balance"><span class="cur">$</span><span id="balance">—</span></div>
+          <div class="meta" id="balance-meta" style="margin-top:.4rem"></div>
+        </div>
+        <div style="text-align:right">
+          <a href="/bulk" class="btn">Bulk check →</a>
+        </div>
+      </div>
+
+      <h2>Deposit</h2>
+      <form id="deposit-form" class="deposit-form" autocomplete="off">
+        <input type="number" id="amount" name="amount" min="20" max="1000" step="1" placeholder="USD amount (min $—)" required>
+        <button type="submit" class="btn" id="deposit-btn">Get pay page</button>
+      </form>
+      <!-- Payment method selector. 'crypto' remains the default; 'card' routes to
+           Whop when WHOP_API_KEY is configured on the server. -->
+      <div style="margin-top:.5rem;display:flex;gap:1rem;flex-wrap:wrap;font-size:.85rem">
+        <label style="display:flex;gap:.35rem;align-items:center;cursor:pointer">
+          <input type="radio" name="dep-provider" value="crypto" checked> Crypto (BTC / LTC / USDT via NOWPayments)
+        </label>
+        <label style="display:flex;gap:.35rem;align-items:center;cursor:pointer">
+          <input type="radio" name="dep-provider" value="card"> Card / Apple Pay / Google Pay (Whop)
+        </label>
+      </div>
+      <div class="meta" style="margin-top:.5rem">Balance credits automatically after payment confirms.</div>
+      <div class="err-msg" id="dep-err"></div>
+      <div class="ok-msg"  id="dep-ok"></div>
+    </div>
+
+    <h2>Bulk jobs</h2>
+    <div class="card"><div id="bulkjobs"><div class="empty">No bulk jobs yet.</div></div></div>
+
+    <h2>Recent deposits</h2>
+    <div class="card"><div id="deposits"><div class="empty">No deposits yet.</div></div></div>
+
+    <h2>Recent transactions</h2>
+    <div class="card"><div id="transactions"><div class="empty">No transactions yet.</div></div></div>
+  </div>
+
+  <script>
+    function fmtMoney(cents){
+      if (cents == null) return '—';
+      const sign = cents < 0 ? '-' : '';
+      const v = Math.abs(cents)/100;
+      return sign + '$' + v.toFixed(2);
+    }
+    function fmtDate(ms){
+      if (!ms) return '';
+      const d = new Date(ms);
+      return d.toLocaleString();
+    }
+    // HTML-escape helper for innerHTML interpolations of server-supplied
+    // strings. Defense-in-depth: webhook data is HMAC-verified, so this
+    // currently only protects against compromised upstream — but cheap.
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    let cfg = { priceCents: 25, pricePerCheckUsd: 0.25, minDepositUsd: 20 };
+
+    async function loadConfig() {
+      try { cfg = await (await fetch('/api/config')).json(); } catch {}
+      const amt = document.getElementById('amount');
+      amt.min = cfg.minDepositUsd;
+      amt.placeholder = `USD amount (min $${cfg.minDepositUsd})`;
+    }
+
+    async function load() {
+      await loadConfig();
+      const r = await fetch('/api/auth/me');
+      const { user } = await r.json();
+      if (!user) { location.href = '/account/login'; return; }
+      document.getElementById('who').textContent = user.email;
+      if (user.isOwner) document.getElementById('owner-link').style.display = 'inline';
+      document.getElementById('balance').textContent = (user.balanceCents/100).toFixed(2);
+      if (user.isOwner) {
+        document.getElementById('balance-meta').innerHTML =
+          `<b style="color:#34d399">Owner — checks are free.</b>`;
+      } else {
+        const checks = Math.floor(user.balanceCents / cfg.priceCents);
+        document.getElementById('balance-meta').innerHTML =
+          `Enough for <b>${checks}</b> account check${checks===1?'':'s'} ($${cfg.pricePerCheckUsd.toFixed(2)} each).`;
+      }
+      loadBulkJobs();
+      loadDeposits();
+      loadTransactions();
+    }
+
+    async function loadDeposits() {
+      try {
+        const r = await fetch('/api/deposit/history');
+        const { deposits } = await r.json();
+        const el = document.getElementById('deposits');
+        if (!deposits || deposits.length === 0) { el.innerHTML = '<div class="empty">No deposits yet.</div>'; return; }
+        el.innerHTML = deposits.map(d => `
+          <div class="row">
+            <div class="l">$${Number(d.amount_usd).toFixed(2)} · <span style="color:var(--text-dim)">${esc(d.pay_currency || 'pending')}</span></div>
+            <div class="r ${d.status==='finished'?'pos':d.status==='expired'||d.status==='failed'?'neg':''}">${esc(d.status)} · ${esc(fmtDate(d.created_at))}</div>
+          </div>`).join('');
+      } catch {}
+    }
+
+    async function loadTransactions() {
+      try {
+        const r = await fetch('/api/transactions');
+        const { transactions } = await r.json();
+        const el = document.getElementById('transactions');
+        if (!transactions || transactions.length === 0) { el.innerHTML = '<div class="empty">No transactions yet.</div>'; return; }
+        el.innerHTML = transactions.map(t => `
+          <div class="row">
+            <div class="l">${esc(t.kind)}${t.ref ? ' <span style="color:var(--text-dim);font-size:.78rem">· '+esc(String(t.ref).slice(0,8))+'…</span>' : ''}</div>
+            <div class="r ${t.amount_cents>0?'pos':'neg'}">${t.amount_cents>0?'+':''}${esc(fmtMoney(t.amount_cents))} <span style="color:var(--text-dim)">· bal ${esc(fmtMoney(t.balance_after))}</span></div>
+          </div>`).join('');
+      } catch {}
+    }
+
+    function fmtDateShort(ms){ if(!ms) return ''; const d=new Date(ms); return d.toLocaleDateString()+' '+d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}); }
+    async function loadBulkJobs() {
+      try {
+        const r = await fetch('/api/bulk/jobs');
+        const { jobs } = await r.json();
+        const el = document.getElementById('bulkjobs');
+        if (!jobs || jobs.length === 0) { el.innerHTML = '<div class="empty">No bulk jobs yet.</div>'; return; }
+        const now = Date.now();
+        el.innerHTML = jobs.map(j => {
+          const expired = j.expires_at && j.expires_at < now;
+          const hasFile = j.results_path && !expired && (j.done > 0);
+          const dl = (type, label, color) => hasFile
+            ? `<a href="/api/bulk/${esc(j.id)}/download?type=${type}" style="color:${color || 'var(--brand-soft)'};text-decoration:none;margin-left:.6rem;font-size:.8rem;${type==='vwi'?'font-weight:700;':''}" title="${type==='vwi'?'Valid accounts with a wanted item or a Plat–Champ rank':label}">${label}</a>`
+            : '';
+          return `
+          <div class="row" style="align-items:center;">
+            <div class="l">
+              <b>${Number(j.done)}</b>/<b>${Number(j.total)}</b> · <span style="color:var(--text-dim)">${esc(j.status)}</span>
+              <span style="color:var(--text-dim);font-size:.78rem"> · ${esc(fmtDateShort(j.created_at))}</span>
+            </div>
+            <div class="r">${
+              j.status==='running'
+                ? `<a href="/bulk?job=${esc(j.id)}" style="color:var(--ok);text-decoration:none;font-size:.8rem;font-weight:600;">▶ Resume / Stop →</a>`
+                : ( hasFile
+                    ? dl('all','All') + dl('valid','Valid') + dl('vwi','VWI','var(--ok)') + dl('invalid','Invalid') + dl('banned','Banned','#f87171')
+                      + dl('unchecked','Unchecked','#e8a53a')
+                      + ((j.done < j.total && !expired) ? `<a href="#" class="resume-job" data-job="${esc(j.id)}" title="Start a new job for the accounts that weren't checked" style="color:var(--ok);text-decoration:none;margin-left:.6rem;font-size:.8rem;font-weight:700;">Resume ▶</a>` : '')
+                    : `<span style="color:var(--text-dim);font-size:.8rem">${expired ? 'expired' : 'no file'}</span>` ) }
+            </div>
+          </div>`;
+        }).join('');
+      } catch {}
+    }
+
+    // ── "Resume" a job from the history (check the remaining accounts) ───────
+    document.getElementById('bulkjobs').addEventListener('click', async (e) => {
+      const a = e.target.closest && e.target.closest('a.resume-job');
+      if (!a) return;
+      e.preventDefault();
+      const jobId = a.getAttribute('data-job');
+      const orig = a.textContent; a.textContent = 'Resuming…';
+      try {
+        const r = await fetch('/api/bulk/' + encodeURIComponent(jobId) + '/resume', { method: 'POST' });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          let msg = d.error || ('HTTP ' + r.status);
+          if (d.needed_cents != null) msg += ' (needed $' + (d.needed_cents/100).toFixed(2) + ', have $' + (d.have_cents/100).toFixed(2) + ')';
+          alert(msg); a.textContent = orig; return;
+        }
+        // Jump to the live view of the new job.
+        location.href = '/bulk?job=' + d.jobId;
+      } catch (err) { alert('Failed: ' + err.message); a.textContent = orig; }
+    });
+
+    document.getElementById('deposit-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('deposit-btn');
+      const errEl = document.getElementById('dep-err');
+      const okEl  = document.getElementById('dep-ok');
+      errEl.textContent = ''; okEl.textContent = '';
+      btn.disabled = true; btn.textContent = 'Creating…';
+      const amountUsd = Number(document.getElementById('amount').value);
+      const provider = (document.querySelector('input[name="dep-provider"]:checked') || {}).value || 'crypto';
+      try {
+        const r = await fetch('/api/deposit', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ amountUsd, provider }),
+        });
+        const data = await r.json();
+        if (!r.ok) { errEl.textContent = data.error || 'Deposit failed.'; btn.disabled=false; btn.textContent='Get pay page'; return; }
+        okEl.textContent = 'Redirecting to payment page…';
+        window.open(data.invoiceUrl, '_blank');
+        btn.disabled=false; btn.textContent='Get pay page';
+      } catch (e) { errEl.textContent = 'Network error: ' + e.message; btn.disabled=false; btn.textContent='Get pay page'; }
+    });
+
+    document.getElementById('logout').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('/api/auth/logout', { method:'POST' });
+      location.href = '/';
+    });
+
+    load();
+  </script>
+  <footer style="text-align:center;padding:2rem 1rem;color:#56607a;font-size:.8rem;border-top:1px solid #1e2842;margin-top:2rem;">
+    R6CHECKER.XYZ — Unofficial. Not affiliated with Ubisoft.
+    <span style="margin:0 .5rem">·</span>
+    <a href="https://discord.gg/gnPB2JBPS6" target="_blank" rel="noopener noreferrer" style="color:#5aa3ff;text-decoration:none;">Support</a>
+    <span style="margin:0 .5rem">·</span>
+    <a href="/legal" style="color:#5aa3ff;text-decoration:none;">Terms &amp; Privacy</a>
+  </footer>
+  <script src="/discord-popup.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Proxies for ubi-email-checker — rename this file to "proxies.txt" to use it.
+# One per line. Blank lines and #-comments are ignored.
+#
+# Supported formats:
+#   http://user:pass@1.2.3.4:8080
+#   https://user:pass@1.2.3.4:8080
+#   1.2.3.4:8080            (assumed http://)
+#   user:pass@1.2.3.4:8080  (assumed http://)
+#
+# Proxies are rotated round-robin, and the checker rotates to a fresh one on
+# every retry (rate-limits, timeouts, anti-bot). No proxies = direct connection.
+#
+# Examples (delete these):
+# http://user:pass@proxy.example.com:8000
+# 203.0.113.10:3128

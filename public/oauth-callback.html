@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R6Checker — Capturing session…</title>
+  <style>
+    body { background:#080b14; color:#e7ecf6; font-family:system-ui,sans-serif;
+           display:flex; align-items:center; justify-content:center;
+           min-height:100vh; margin:0; text-align:center; }
+    .panel { background:#111827; border:1px solid #1e2842; border-radius:10px;
+             padding:1.5rem 2rem; max-width:380px; }
+    h2 { margin:0 0 .5rem; color:#3a8dff; }
+    p { color:#8593ad; margin:.4rem 0; font-size:.9rem; line-height:1.4; }
+    .ok  { color:#34d399; }
+    .err { color:#f87171; }
+    button { margin-top:.8rem; padding:.5rem 1rem; background:#3a8dff;
+             color:#fff; border:0; border-radius:6px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h2 id="msg">Capturing session…</h2>
+    <p id="sub">Hold on — pulling your ticket from Ubisoft.</p>
+    <button id="close-btn" style="display:none" onclick="window.close()">Close window</button>
+  </div>
+
+  <script>
+    // This page runs INSIDE a popup window after the user has just completed
+    // login at connect.ubisoft.com (in this same popup, from the user's IP).
+    // The user's browser now holds fresh Ubisoft cookies. We use them to
+    // fetch the ticket from public-ubiservices.ubi.com, then postMessage
+    // it back to the opener (the main r6checker.xyz tab).
+    (async function () {
+      const msg  = document.getElementById('msg');
+      const sub  = document.getElementById('sub');
+      const btn  = document.getElementById('close-btn');
+      const APP_ID = '4391c956-8943-48eb-8859-07b0778f47b9';
+
+      function done(ok, payload) {
+        try {
+          if (window.opener && !window.opener.closed) {
+            window.opener.postMessage({ type: 'r6-popup-login', ok, ...payload }, window.location.origin);
+          }
+        } catch (e) { console.warn('postMessage failed:', e); }
+        if (ok) {
+          msg.textContent = 'Logged in!';
+          msg.className = 'ok';
+          sub.textContent = 'Returning to r6checker.xyz…';
+          setTimeout(() => { try { window.close(); } catch {} }, 600);
+        } else {
+          msg.textContent = 'Login problem';
+          msg.className = 'err';
+          sub.textContent = payload?.message || 'Something went wrong.';
+          btn.style.display = 'inline-block';
+        }
+      }
+
+      // Step 1: GET /v3/profiles/sessions with credentials so the user's
+      // Ubisoft cookies are sent. This often works post-login when a direct
+      // POST with credentials wouldn't (the cookie is the auth).
+      try {
+        const r = await fetch('https://public-ubiservices.ubi.com/v3/profiles/sessions', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Ubi-AppId': APP_ID,
+          },
+          body: JSON.stringify({ rememberMe: true }),
+        });
+        const body = await r.json().catch(() => ({}));
+        if (r.ok && body.ticket) {
+          // Post directly to our save-session endpoint
+          const saveRes = await fetch('/api/save-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              // We don't know the email here — opener will hand it via the
+              // postMessage flow once we relay success. So just stash the
+              // session in sessionStorage and let opener finalize.
+              email: sessionStorage.getItem('r6-pending-email') || '',
+              session: {
+                ticket: body.ticket,
+                sessionId: body.sessionId || '',
+                userId: body.userId,
+                nameOnPlatform: body.nameOnPlatform || '',
+                rememberMeTicket: body.rememberMeTicket || '',
+                appId: APP_ID,
+              },
+            }),
+          });
+          // Notify opener regardless — opener decides what to do
+          done(true, {
+            session: {
+              ticket: body.ticket, sessionId: body.sessionId || '',
+              userId: body.userId, nameOnPlatform: body.nameOnPlatform || '',
+              rememberMeTicket: body.rememberMeTicket || '', appId: APP_ID,
+            },
+          });
+          return;
+        }
+        if (r.status === 401 || r.status === 403) {
+          done(false, { reason: 'auth', message: 'Cookie session was not found. Try logging in again.' });
+          return;
+        }
+        done(false, { reason: 'network', message: 'Unexpected response: HTTP ' + r.status });
+      } catch (e) {
+        done(false, { reason: 'cors', message: 'Browser blocked the session capture: ' + (e.message || e) });
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+*.key
+art.txt
+checker.bundle.js
+checker.obf.js
+crash.log
+dist/
+icon-src.png
+key.txt
+main.bundle.js
+node_modules/
+output/
+results.txt
+sea-prep.blob
+valid.txt
+vwi.txt
+worker.bundle.js

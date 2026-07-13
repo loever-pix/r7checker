@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R6Checker — Sign in to view your locker</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="R6Checker">
+  <meta property="og:title" content="R6Checker — Add your account">
+  <meta property="og:description" content="Sign in to load your Rainbow Six Siege collection — skins, charms, elites and ranks.">
+  <meta property="og:image" content="https://r6checker.xyz/img/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://r6checker.xyz/img/og.jpg">
+  <meta name="theme-color" content="#3a8dff">
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>
+    :root {
+      --brand:#3a8dff; --brand-soft:#5aa3ff; --brand-dim:#1a4d99;
+      --bg:#080b14; --bg-card:#111827; --bg-card-hov:#141d31;
+      --border:#1e2842; --border-bright:#2c3a5e;
+      --text:#e7ecf6; --text-dim:#8593ad;
+    }
+    body.login-page {
+      background:var(--bg) !important; color:var(--text); position:relative;
+      min-height:100vh; margin:0; padding:1.5rem 1rem;
+      display:flex; align-items:center; justify-content:center;
+    }
+    body.login-page::after {
+      content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background-repeat:no-repeat; background-position:center; background-size:cover;
+      background-image:
+        linear-gradient(180deg, rgba(8,11,20,.84) 0%, rgba(8,11,20,.93) 100%),
+        radial-gradient(circle at 20% 0%, rgba(58,141,255,.12), transparent 50%),
+        url('/img/ayanokoji/hero-1280.webp');
+    }
+    .auth-shell {
+      background:var(--bg-card); border:1px solid var(--border);
+      box-shadow:0 8px 40px rgba(0,0,0,.5), 0 0 60px rgba(58,141,255,.1);
+      border-radius:12px; padding:1.4rem 1.4rem 1.1rem;
+      max-width:420px; width:100%;
+    }
+    .home-link { display:block; text-align:center; margin-bottom:.6rem;
+                 color:var(--text-dim); text-decoration:none; font-size:.85rem; }
+    .home-link:hover { color:var(--brand-soft); }
+    .auth-shell h1 { color:var(--text); font-weight:800; letter-spacing:-.02em;
+                     font-size:1.6rem; margin:.3rem 0 .3rem; text-align:center; }
+    .auth-shell h1 .dot { color:#cad3dc; }
+    .auth-shell .sub { color:var(--text-dim); text-align:center; font-size:.82rem;
+                       margin:0 0 1rem; line-height:1.5; }
+
+    .form-group { margin-bottom:.8rem; }
+    .form-group label { display:block; color:var(--text); font-size:.78rem;
+                        margin-bottom:.3rem; font-weight:500; }
+    .form-group input {
+      width:100%; padding:.75rem .9rem; box-sizing:border-box;
+      background:#0b1220; border:1px solid var(--border); color:var(--text);
+      border-radius:8px; font-size:.95rem; outline:none;
+      transition:border-color .15s, box-shadow .15s;
+    }
+    .form-group input::placeholder { color:#4d5a72; }
+    .form-group input:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(58,141,255,.15); }
+    .btn-primary {
+      width:100%; padding:.7rem; background:var(--brand); color:#fff;
+      border:1px solid var(--brand); border-radius:6px; font-weight:600;
+      font-size:.95rem; cursor:pointer; box-shadow:0 0 20px rgba(58,141,255,.3);
+      margin-top:.3rem;
+    }
+    .btn-primary:hover { background:var(--brand-soft); }
+    .btn-primary:disabled { opacity:.55; cursor:wait; }
+    .err-msg { color:#f87171; font-size:.78rem; margin:.4rem 0 0; min-height:1em; }
+    .status-line { color:var(--text-dim); font-size:.78rem; text-align:center;
+                   margin:.7rem 0 0; min-height:1.1em; }
+    .status-line.ok  { color:#34d399; }
+    .status-line.err { color:#f87171; }
+    .spin { display:inline-block; width:11px; height:11px;
+            border:2px solid rgba(255,255,255,.15);
+            border-top-color:var(--brand); border-radius:50%;
+            animation:spin .7s linear infinite; vertical-align:middle; margin-right:.4rem; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .hidden { display:none !important; }
+    .small-note { color:var(--text-dim); font-size:.7rem; text-align:center;
+                  margin-top:.8rem; line-height:1.4; opacity:.7; }
+    .disclaimer { color:var(--text-dim); font-size:.72rem; text-align:center;
+                  margin:.7rem 0 0; line-height:1.45; }
+    /* Phones: 16px inputs stop iOS auto-zoom; tighten the card on small screens. */
+    @media (max-width:640px){
+      body.login-page{ padding:1rem .8rem; align-items:flex-start; padding-top:2rem; }
+      .auth-shell{ padding:1.2rem 1.1rem 1rem; }
+      .form-group input{ font-size:16px; }
+    }
+  </style>
+</head>
+<body class="login-page">
+  <div class="auth-shell">
+    <a href="/" class="home-link">← Back to home</a>
+    <h1>Add <span class="dot">Account</span></h1>
+    <p class="sub" id="default-sub">Connect your Ubisoft account to view your R6 Siege collection.</p>
+    <div id="for-sale-banner" style="display:none;background:rgba(58,141,255,.08);border:1px solid rgba(58,141,255,.3);border-radius:8px;padding:.8rem 1rem;margin:0 0 1rem;font-size:.9rem;line-height:1.45;color:#cfe0ff">
+      <b style="color:#fff">🛒 Check the account you want to sell</b><br>
+      Once it's verified, you'll be sent back to the sell page and it'll show up in your pickable list.
+    </div>
+    <script>
+      (function(){
+        try {
+          const p = new URLSearchParams(location.search);
+          if (p.get('for_sale') === '1') {
+            const b = document.getElementById('for-sale-banner');
+            const d = document.getElementById('default-sub');
+            if (b) b.style.display = 'block';
+            if (d) d.style.display = 'none';
+          }
+        } catch {}
+      })();
+    </script>
+
+    <div class="form-group">
+      <label for="email-input">Ubisoft Email</label>
+      <input type="email" id="email-input" placeholder="you@example.com" autocomplete="username" autofocus>
+    </div>
+    <div class="form-group">
+      <label for="password-input">Password</label>
+      <input type="password" id="password-input" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="cred-error" class="err-msg"></div>
+    <!-- Cloudflare Turnstile captcha. Replace data-sitekey with your real site key. -->
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAADYscUmg88l0lukk" data-theme="dark" style="margin:.6rem 0"></div>
+    <button id="submit-cred-btn" class="btn-primary">Add Account</button>
+    <p class="disclaimer">Your credentials are only used to fetch your data and are never stored.</p>
+
+    <div id="twofa-block" class="hidden" style="margin-top:1rem">
+      <hr style="border:none;border-top:1px solid var(--border);margin:.8rem 0">
+      <p class="sub" style="margin-bottom:.5rem; text-align:left">
+        <strong style="color:var(--text)">2-step verification.</strong>
+        Ubisoft sent a 6-digit code to your email.
+      </p>
+      <div class="form-group">
+        <label for="twofa-input">Verification Code</label>
+        <input type="text" id="twofa-input" placeholder="123456" inputmode="numeric" maxlength="8" autocomplete="one-time-code">
+      </div>
+      <div id="twofa-error" class="err-msg"></div>
+      <button id="submit-twofa-btn" class="btn-primary">Verify Code</button>
+    </div>
+
+    <p class="status-line" id="status"></p>
+    <p class="small-note">Prefer not to share your password? <a href="/add" style="color:var(--brand-soft); text-decoration:none">Paste a Ubisoft ticket instead →</a></p>
+  </div>
+
+  <!-- v= cache-bust; bump when server-login.js changes -->
+  <script src="server-login.js?v=20260528-1"></script>
+  <script>
+    // ── Email/password login → server-side (proxy / cases-page method) ──
+    // The browser POSTs the credentials to /api/login; the server logs in to
+    // Ubisoft through the rotating residential proxy and returns the player
+    // data (or a 2FA challenge). The password is never stored.
+    const credBtn = document.getElementById('submit-cred-btn');
+    const credErr = document.getElementById('cred-error');
+    const emailInput = document.getElementById('email-input');
+    const passwordInput = document.getElementById('password-input');
+    const twoFABlock = document.getElementById('twofa-block');
+    const twoFABtn = document.getElementById('submit-twofa-btn');
+    const twoFAErr = document.getElementById('twofa-error');
+    const statusEl = document.getElementById('status');
+    let twoFATicket = null;
+
+    function setStatus(text, kind) {
+      statusEl.textContent = text;
+      statusEl.className = 'status-line' + (kind ? ' ' + kind : '');
+    }
+
+    // "email:password" pasted into the email field → split into both fields.
+    window.R6ServerLogin.attachEmailPassSplit(emailInput, passwordInput);
+
+    credBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      credErr.textContent = ''; twoFAErr.textContent = '';
+      if (!email || !password) { credErr.textContent = 'Enter your email and password.'; return; }
+      const token = window.R6ServerLogin.getTurnstileToken();
+      if (!token) { credErr.textContent = 'Please complete the captcha first.'; return; }
+      credBtn.disabled = true; credBtn.textContent = 'Adding account…';
+      setStatus('Signing in to Ubisoft…');
+
+      try {
+        const r = await window.R6ServerLogin.serverLogin(email, password, token);
+        if (r.requires2FA) {
+          twoFATicket = r.twoFATicket;
+          twoFABlock.classList.remove('hidden');
+          credBtn.textContent = 'Re-send Code';
+          credBtn.disabled = false;
+          document.getElementById('twofa-input').focus();
+          setStatus('2FA code sent — check your email.', 'ok');
+          return;
+        }
+        if (r.ok) {
+          setStatus('Loading your locker…', 'ok');
+          window.R6ServerLogin.goToProfile(r.playerData);
+          return;
+        }
+        credErr.textContent = r.error || 'Sign-in failed.';
+        setStatus('Failed.', 'err');
+        credBtn.disabled = false; credBtn.textContent = 'Add Account';
+      } catch (e) {
+        credErr.textContent = e.message || 'Network error.';
+        setStatus('Error: ' + e.message, 'err');
+        credBtn.disabled = false; credBtn.textContent = 'Add Account';
+      }
+    });
+
+    twoFABtn.addEventListener('click', async () => {
+      const code = document.getElementById('twofa-input').value.trim();
+      twoFAErr.textContent = '';
+      if (!code) { twoFAErr.textContent = 'Enter the 6-digit code.'; return; }
+      if (!twoFATicket) { twoFAErr.textContent = 'Session expired — sign in again.'; return; }
+      twoFABtn.disabled = true; twoFABtn.textContent = 'Verifying…';
+      try {
+        const r = await window.R6ServerLogin.serverVerify2FA(code, twoFATicket);
+        if (r.ok) {
+          setStatus('Loading your locker…', 'ok');
+          window.R6ServerLogin.goToProfile(r.playerData);
+          return;
+        }
+        twoFAErr.textContent = r.error || 'Verification failed.';
+      } catch (e) {
+        twoFAErr.textContent = e.message || 'Network error.';
+      } finally {
+        twoFABtn.disabled = false; twoFABtn.textContent = 'Verify Code';
+      }
+    });
+
+    passwordInput.addEventListener('keydown', e => { if (e.key === 'Enter') credBtn.click(); });
+    document.getElementById('twofa-input').addEventListener('keydown', e => { if (e.key === 'Enter') twoFABtn.click(); });
+  </script>
+  <script src="/discord-popup.js" defer></script>
+</body>
+</html>

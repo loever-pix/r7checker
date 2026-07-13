@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R6Checker — Add account by ticket</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="R6Checker">
+  <meta property="og:title" content="R6Checker — Add your account">
+  <meta property="og:description" content="Add your Rainbow Six Siege account to view your full collection — skins, charms, elites and ranks.">
+  <meta property="og:image" content="https://r6checker.xyz/img/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://r6checker.xyz/img/og.jpg">
+  <meta name="theme-color" content="#3a8dff">
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>
+    :root {
+      --brand:#3a8dff; --brand-soft:#5aa3ff;
+      --bg:#080b14; --bg-card:#111827;
+      --border:#1e2842; --border-bright:#2c3a5e;
+      --text:#e7ecf6; --text-dim:#8593ad;
+      --ok:#34d399; --err:#f87171; --warn:#ffc04d;
+      --mono: 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
+    }
+    body { margin:0; padding:2rem 1rem; background:var(--bg); color:var(--text);
+           font-family:system-ui,-apple-system,sans-serif; min-height:100vh; position:relative; }
+    body::after {
+      content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+      background-repeat:no-repeat; background-position:center; background-size:cover;
+      background-image:
+        linear-gradient(180deg, rgba(8,11,20,.84) 0%, rgba(8,11,20,.93) 100%),
+        radial-gradient(circle at 20% 0%, rgba(58,141,255,.12), transparent 50%),
+        url('/img/ayanokoji/hero-1280.webp');
+    }
+    .wrap { max-width:680px; margin:0 auto; }
+    .home-link { display:inline-block; margin-bottom:1rem; color:var(--text-dim);
+                 text-decoration:none; font-size:.85rem; }
+    .home-link:hover { color:var(--brand-soft); }
+    h1 { font-size:1.6rem; margin:0 0 .3rem; letter-spacing:-.02em; font-weight:800; }
+    h1 .dot { color:#cad3dc; }
+    .sub { color:var(--text-dim); font-size:.88rem; margin:0 0 1.5rem; line-height:1.5; }
+
+    .panel { background:var(--bg-card); border:1px solid var(--border);
+             border-radius:10px; padding:1.25rem 1.4rem; margin-bottom:1.1rem;
+             box-shadow:0 4px 30px rgba(0,0,0,.3); }
+    .panel h2 { margin:0 0 .7rem; font-size:1rem; color:var(--brand-soft);
+                font-weight:600; display:flex; align-items:center; gap:.5rem; }
+    .step-num { display:inline-flex; align-items:center; justify-content:center;
+                width:22px; height:22px; background:var(--brand); color:#fff;
+                border-radius:50%; font-size:.78rem; font-weight:700; }
+    .panel p { margin:.5rem 0; color:var(--text-dim); font-size:.85rem; line-height:1.5; }
+    .panel ul, .panel ol { color:var(--text-dim); font-size:.85rem; line-height:1.6;
+                            padding-left:1.4rem; }
+    .panel code { background:#02060f; padding:.1rem .35rem; border-radius:3px;
+                  font-family:var(--mono); font-size:.78rem; color:#aabbd0;
+                  border:1px solid var(--border); }
+
+    pre { background:#02060f; padding:.9rem 1rem; border-radius:6px;
+          font-family:var(--mono); font-size:.78rem; line-height:1.55;
+          overflow-x:auto; color:#aabbd0; margin:.5rem 0;
+          border:1px solid var(--border); white-space:pre-wrap; word-break:break-all; }
+    .copy-btn { display:inline-block; padding:.35rem .75rem; background:transparent;
+                color:var(--brand-soft); border:1px solid var(--brand-soft);
+                border-radius:4px; cursor:pointer; font-size:.75rem; margin-top:.3rem; }
+    .copy-btn:hover { background:rgba(58,141,255,.1); }
+    .copy-btn.copied { color:var(--ok); border-color:var(--ok); }
+
+    textarea {
+      width:100%; min-height:140px; padding:.7rem; box-sizing:border-box;
+      background:var(--bg); border:1px solid var(--border); color:var(--text);
+      border-radius:6px; font-family:var(--mono); font-size:.78rem; line-height:1.4;
+      outline:none; resize:vertical;
+    }
+    textarea:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(58,141,255,.15); }
+
+    .btn-primary {
+      width:100%; padding:.75rem; background:var(--brand); color:#fff;
+      border:1px solid var(--brand); border-radius:6px; font-weight:600;
+      font-size:.95rem; cursor:pointer; box-shadow:0 0 20px rgba(58,141,255,.3);
+      margin-top:.5rem;
+    }
+    .btn-primary:hover { background:var(--brand-soft); }
+    .btn-primary:disabled { opacity:.55; cursor:wait; }
+
+    .err-msg { color:var(--err); font-size:.82rem; margin:.6rem 0; min-height:1em; }
+    .ok-msg  { color:var(--ok);  font-size:.82rem; margin:.6rem 0; }
+
+    .tabs { display:flex; gap:.4rem; margin-bottom:1rem; }
+    .tab { flex:1; padding:.6rem; text-align:center; font-size:.85rem;
+           background:transparent; border:1px solid var(--border); color:var(--text-dim);
+           border-radius:6px; cursor:pointer; transition:.15s; font-weight:500; }
+    .tab.active { background:rgba(58,141,255,.12); border-color:var(--brand); color:var(--text); }
+    .tab:hover:not(.active) { color:var(--text); background:rgba(58,141,255,.04); }
+    .pane { display:none; }
+    .pane.active { display:block; }
+
+    .hint { color:var(--warn); font-size:.78rem; margin-top:.5rem; }
+    .small { color:var(--text-dim); font-size:.75rem; }
+
+    .form-row { margin:.7rem 0; }
+    .form-row label { display:block; color:var(--text); font-size:.78rem;
+                      margin-bottom:.3rem; font-weight:500; }
+    .form-row input {
+      width:100%; padding:.6rem .7rem; box-sizing:border-box;
+      background:var(--bg); border:1px solid var(--border); color:var(--text);
+      border-radius:6px; font-size:.92rem; outline:none;
+      transition:border-color .15s, box-shadow .15s;
+    }
+    .form-row input:focus { border-color:var(--brand); box-shadow:0 0 0 3px rgba(58,141,255,.15); }
+    .disclaimer { color:var(--text-dim); font-size:.72rem; text-align:center;
+                  margin:.7rem 0 0; line-height:1.45; }
+    .hidden { display:none !important; }
+    /* Phones: 16px inputs stop iOS Safari auto-zoom on focus. */
+    @media (max-width:640px){ .form-row input,textarea,select{font-size:16px;} body{padding:1rem .8rem;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a href="/" class="home-link">← Back to home</a>
+    <h1>Add <span class="dot">Account</span></h1>
+    <p class="sub">Connect your Ubisoft account to view your R6 Siege collection. Sign in with your <strong>email &amp; password</strong> and we'll fetch it for you — or, if you'd rather not share your password, paste a <strong>raw ticket</strong> / run a 1-line command to get one yourself.</p>
+
+    <div class="tabs">
+      <button class="tab active" data-pane="emailpass">📧 Email &amp; Password</button>
+      <button class="tab" data-pane="ticket">🎟 Paste Ticket</button>
+    </div>
+
+    <!-- ============== PANE: email & password (server-side login) ============== -->
+    <div class="pane active" data-pane="emailpass">
+      <div class="panel">
+        <h2><span class="step-num">1</span> Sign in with your Ubisoft account</h2>
+        <p>Enter your Ubisoft email and password. We log in on your behalf through a rotating residential proxy and load your locker. Tip: you can paste a <code>email:password</code> combo straight into the email box — we'll split it for you.</p>
+        <div class="form-row">
+          <label for="ep-email">Ubisoft Email</label>
+          <input type="email" id="ep-email" placeholder="you@example.com" autocomplete="username">
+        </div>
+        <div class="form-row">
+          <label for="ep-password">Password</label>
+          <input type="password" id="ep-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+
+        <div id="ep-twofa" class="hidden form-row">
+          <label for="ep-code">2FA code (sent to your email)</label>
+          <input type="text" id="ep-code" placeholder="123456" inputmode="numeric" maxlength="8" autocomplete="one-time-code">
+        </div>
+
+        <div id="ep-err" class="err-msg"></div>
+        <div id="ep-ok"  class="ok-msg"></div>
+        <div id="ts-ep" class="cf-turnstile" data-sitekey="0x4AAAAAADYscUmg88l0lukk" data-theme="dark" style="margin:.4rem 0"></div>
+        <button id="submit-ep-btn" class="btn-primary">Add Account</button>
+        <p class="disclaimer">Your credentials are only used to fetch your data and are never stored.</p>
+      </div>
+    </div>
+
+    <!-- ============== PANE: paste raw ticket ============== -->
+    <div class="pane" data-pane="ticket">
+      <div class="panel">
+        <h2><span class="step-num">1</span> Paste the JSON Ubisoft returned</h2>
+        <p>If you've logged in to Ubisoft's API in your terminal or DevTools, paste the entire JSON response below. The fields we need: <code>ticket</code>, <code>userId</code>, <code>sessionId</code>, and ideally <code>rememberMeTicket</code>.</p>
+        <textarea id="ticket-json" placeholder='{"ticket":"abc123…", "userId":"00000000-0000-0000-0000-000000000000", "sessionId":"xxx", "rememberMeTicket":"yyy", "nameOnPlatform":"YourName"}'></textarea>
+        <p class="small">You can also paste just the ticket value alone — but we need at least <code>ticket</code> + <code>userId</code> to load your data.</p>
+      </div>
+
+      <div class="panel">
+        <h2><span class="step-num">2</span> Submit — server validates + persists</h2>
+        <p>We hit <code>/v3/users/me</code> on Ubisoft with your ticket to verify it. If valid, the ticket + rememberMeTicket are stored (encrypted on disk) and used to fetch your inventory + seasons. Future visits use the rememberMeTicket to auto-refresh — no re-login needed for ~30 days.</p>
+        <div id="ticket-err" class="err-msg"></div>
+        <div id="ticket-ok"  class="ok-msg"></div>
+        <div id="ts-ticket" class="cf-turnstile" data-sitekey="0x4AAAAAADYscUmg88l0lukk" data-theme="dark" style="margin:.4rem 0"></div>
+        <button id="submit-ticket-btn" class="btn-primary">Submit Ticket</button>
+      </div>
+    </div>
+
+    <p class="small" style="text-align:center; margin-top:1.5rem;">
+      Prefer a dedicated sign-in page? <a href="/login" style="color:var(--brand-soft)">Use /login</a>
+    </p>
+  </div>
+
+  <!-- v= cache-bust; bump when server-login.js changes -->
+  <script src="server-login.js?v=20260528-1"></script>
+  <script>
+    const $ = (s) => document.querySelector(s);
+
+    function copyText(elId, btn) {
+      const t = $('#' + elId).textContent;
+      navigator.clipboard.writeText(t).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = '✓ Copied';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1500);
+      });
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => {
+        const which = t.dataset.pane;
+        document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.pane === which));
+        document.querySelectorAll('.pane').forEach(x => x.classList.toggle('active', x.dataset.pane === which));
+      });
+    });
+
+    // Parse + submit
+    async function submitJson(raw, errEl, okEl, btn) {
+      errEl.textContent = ''; okEl.textContent = '';
+      if (!raw) { errEl.textContent = 'Paste the JSON first.'; return; }
+      let body;
+      try { body = JSON.parse(raw); }
+      catch (e) { errEl.textContent = 'That is not valid JSON. Make sure you copied the entire response.'; return; }
+
+      if (!body.ticket || !body.userId) {
+        errEl.textContent = 'JSON is missing required fields: need at least "ticket" and "userId".';
+        return;
+      }
+
+      const tsToken = window.R6ServerLogin.getTurnstileToken(document.getElementById('ts-ticket'));
+      if (!tsToken) { errEl.textContent = 'Please complete the captcha first.'; return; }
+
+      btn.disabled = true; btn.textContent = 'Validating with Ubisoft…';
+      try {
+        const res = await fetch('/api/save-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            turnstileToken: tsToken,
+            session: {
+              ticket: body.ticket,
+              sessionId: body.sessionId || '',
+              userId: body.userId,
+              nameOnPlatform: body.nameOnPlatform || '',
+              rememberMeTicket: body.rememberMeTicket || '',
+              appId: '4391c956-8943-48eb-8859-07b0778f47b9',
+            },
+          }),
+        });
+        const d = await res.json();
+        if (!res.ok) {
+          errEl.textContent = d.error || ('HTTP ' + res.status);
+          btn.disabled = false; btn.textContent = btn.id === 'submit-ticket-btn' ? 'Submit Ticket' : 'Submit';
+          return;
+        }
+        okEl.textContent = 'Ticket valid! Loading your locker…';
+        try { sessionStorage.setItem('r6player', JSON.stringify(d.playerData)); } catch {}
+        setTimeout(() => { window.location.href = '/profile/' + encodeURIComponent(body.userId); }, 600);
+      } catch (e) {
+        errEl.textContent = 'Network error: ' + e.message;
+        btn.disabled = false; btn.textContent = btn.id === 'submit-ticket-btn' ? 'Submit Ticket' : 'Submit';
+      }
+    }
+
+    $('#submit-ticket-btn').addEventListener('click', () =>
+      submitJson($('#ticket-json').value.trim(), $('#ticket-err'), $('#ticket-ok'), $('#submit-ticket-btn'))
+    );
+    // ── Email & Password tab: server-side login via the proxy ──────────────
+    (function () {
+      const emailEl = $('#ep-email');
+      const passEl  = $('#ep-password');
+      const codeEl  = $('#ep-code');
+      const twoFAEl = $('#ep-twofa');
+      const errEl   = $('#ep-err');
+      const okEl    = $('#ep-ok');
+      const btn     = $('#submit-ep-btn');
+      let twoFATicket = null;
+
+      // "email:password" pasted into the email box → split into both fields.
+      window.R6ServerLogin.attachEmailPassSplit(emailEl, passEl);
+
+      async function go() {
+        errEl.textContent = ''; okEl.textContent = '';
+
+        // 2FA step: a ticket is pending and the user entered a code.
+        if (twoFATicket) {
+          const code = codeEl.value.trim();
+          if (!code) { errEl.textContent = 'Enter the 6-digit code from your email.'; return; }
+          btn.disabled = true; btn.textContent = 'Verifying…';
+          const r = await window.R6ServerLogin.serverVerify2FA(code, twoFATicket);
+          if (r.ok) { okEl.textContent = 'Verified! Loading your locker…'; window.R6ServerLogin.goToProfile(r.playerData); return; }
+          errEl.textContent = r.error || 'Verification failed.';
+          btn.disabled = false; btn.textContent = 'Verify Code';
+          return;
+        }
+
+        const email = emailEl.value.trim();
+        const password = passEl.value;
+        if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
+        const token = window.R6ServerLogin.getTurnstileToken(document.getElementById('ts-ep'));
+        if (!token) { errEl.textContent = 'Please complete the captcha first.'; return; }
+        btn.disabled = true; btn.textContent = 'Adding account…';
+
+        const r = await window.R6ServerLogin.serverLogin(email, password, token);
+        if (r.requires2FA) {
+          twoFATicket = r.twoFATicket;
+          twoFAEl.classList.remove('hidden');
+          okEl.textContent = '2FA code sent — check your email, then enter it above.';
+          btn.disabled = false; btn.textContent = 'Verify Code';
+          codeEl.focus();
+          return;
+        }
+        if (r.ok) { okEl.textContent = 'Signed in! Loading your locker…'; window.R6ServerLogin.goToProfile(r.playerData); return; }
+        errEl.textContent = r.error || 'Sign-in failed.';
+        btn.disabled = false; btn.textContent = 'Add Account';
+      }
+
+      btn.addEventListener('click', go);
+      passEl.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+      codeEl.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+    })();
+  </script>
+</body>
+</html>

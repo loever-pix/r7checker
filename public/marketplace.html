@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>R6Checker — Marketplace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<meta name="theme-color" content="#080b14">
+<link rel="icon" type="image/png" href="/img/logo.png">
+<style>
+  :root {
+    --bg:#080b14; --panel:#111827; --panel2:#0f1830; --line:#1e2842;
+    --text:#e7ecf6; --dim:#8593ad; --brand:#3a8dff; --brand2:#5aa3ff;
+    --ok:#42cb6e; --bad:#ff5c6c; --gold:#f0c75a;
+    --shadow:0 4px 24px rgba(0,0,0,.35);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5;
+    background-image:radial-gradient(circle at 0% 0%,rgba(58,141,255,.08),transparent 60%),radial-gradient(circle at 100% 100%,rgba(58,141,255,.04),transparent 50%);
+    background-attachment:fixed;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background-repeat:no-repeat;background-position:center top;background-size:cover;
+    background-image:linear-gradient(180deg,rgba(8,11,20,.9),rgba(8,11,20,.95) 58%,var(--bg) 88%),
+      url('/img/ayanokoji/hero-1280.webp');}
+  a{color:inherit}
+
+  /* ─── Header ─────────────────────────────────────────────────── */
+  .nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:rgba(8,11,20,.85);border-bottom:1px solid var(--line)}
+  .nav-in{max-width:1280px;margin:0 auto;padding:.75rem 1rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+  .brand{display:inline-flex;align-items:center;gap:.5rem;font-weight:800;text-decoration:none;color:var(--text);letter-spacing:-.01em}
+  .brand img{width:26px;height:26px}
+  .brand-dot{color:#cad3dc}
+  .nav-links{margin-left:auto;display:flex;gap:.25rem;flex-wrap:wrap}
+  .nav-links a{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem .8rem;border-radius:7px;color:var(--dim);
+    text-decoration:none;font-size:.86rem;font-weight:500;transition:background .15s,color .15s,border-color .15s;border:1px solid transparent}
+  .nav-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+  .nav-links a.act{color:var(--text);background:rgba(58,141,255,.12);border-color:rgba(58,141,255,.3)}
+
+  /* ─── Buttons (the unified system) ────────────────────────────── */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;border:1px solid transparent;
+    background:var(--brand);color:#fff;font-weight:600;font-size:.9rem;line-height:1;padding:.65rem 1rem;border-radius:8px;
+    cursor:pointer;text-decoration:none;transition:background .15s,transform .05s,box-shadow .15s;white-space:nowrap;font-family:inherit}
+  .btn:hover{background:var(--brand2)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled,.btn[disabled]{background:#1e2842;color:var(--dim);cursor:not-allowed}
+  .btn.ghost{background:transparent;color:var(--text);border-color:var(--line)}
+  .btn.ghost:hover{background:rgba(255,255,255,.04);border-color:rgba(58,141,255,.3)}
+  .btn.sm{padding:.45rem .8rem;font-size:.82rem}
+  .btn.danger{background:transparent;color:var(--bad);border-color:rgba(255,92,108,.4)}
+  .btn.danger:hover{background:rgba(255,92,108,.08);border-color:var(--bad)}
+
+  /* ─── Page shell ─────────────────────────────────────────────── */
+  main{max-width:1280px;margin:0 auto;padding:1.5rem 1rem 4rem}
+  h1{font-size:clamp(1.4rem,3.5vw,1.9rem);margin:0 0 .35rem;letter-spacing:-.015em;font-weight:800}
+  .lede{color:var(--dim);margin:0 0 1.4rem;font-size:.95rem;max-width:760px}
+
+  /* ─── Top actions ────────────────────────────────────────────── */
+  .actions{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:1.1rem}
+
+  /* ─── Filter bar ─────────────────────────────────────────────── */
+  .filters{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.2rem;
+    display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}
+  .filters label{display:inline-flex;align-items:center;gap:.45rem;font-size:.84rem;color:var(--dim);font-weight:500}
+  .filters select,.filters input{background:#0b1220;color:var(--text);border:1px solid var(--line);border-radius:7px;
+    padding:.45rem .65rem;font-size:.88rem;font-family:inherit;min-width:0}
+  .filters input[type=number]{width:7.5rem}
+
+  /* ─── Grid + cards ───────────────────────────────────────────── */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+  .card{background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);border:1px solid var(--line);border-radius:12px;
+    overflow:hidden;display:flex;flex-direction:column;transition:border-color .15s,transform .15s,box-shadow .15s}
+  .card:hover{border-color:rgba(58,141,255,.45);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .card-head{display:flex;align-items:center;gap:.7rem;padding:.9rem;border-bottom:1px solid var(--line);min-width:0}
+  .avatar{width:42px;height:42px;border-radius:50%;background:#0b1220;border:1px solid var(--line);object-fit:cover;flex-shrink:0}
+  .uname{font-weight:700;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sub{font-size:.74rem;color:var(--dim)}
+  .card-body{padding:.9rem;flex:1;display:flex;flex-direction:column;gap:.5rem;font-size:.88rem;min-height:0}
+  .tags{display:flex;gap:.3rem;flex-wrap:wrap}
+  .tag{font-size:.71rem;font-weight:700;padding:.18rem .5rem;border-radius:5px;letter-spacing:.02em;line-height:1.3}
+  .tag.fa{background:rgba(66,203,110,.15);color:var(--ok)}
+  .tag.nfa{background:rgba(240,199,90,.15);color:var(--gold)}
+  .tag.banned{background:rgba(255,92,108,.15);color:var(--bad)}
+  .tag.rank{background:rgba(58,141,255,.15);color:var(--brand)}
+  .card-title{font-weight:600;color:var(--text);font-size:.92rem}
+  .card-desc{color:var(--dim);font-size:.83rem;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;padding:.75rem .9rem;border-top:1px solid var(--line);gap:.5rem;flex-wrap:wrap}
+  .seller{display:flex;align-items:center;gap:.4rem;font-size:.82rem;color:var(--dim);min-width:0;flex:1}
+  .seller b{color:var(--text);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .trust{display:inline-flex;align-items:center;gap:.18rem;background:rgba(66,203,110,.18);color:var(--ok);
+    font-size:.66rem;font-weight:800;padding:.12rem .4rem;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+  .price{font-weight:800;font-size:1.1rem;color:#fff;white-space:nowrap}
+
+  /* ─── States ────────────────────────────────────────────────── */
+  .empty{background:var(--panel);border:1px dashed var(--line);border-radius:12px;padding:2.5rem 1.5rem;text-align:center;color:var(--dim)}
+  .empty h3{color:var(--text);margin:0 0 .5rem;font-size:1.1rem}
+  .empty p{margin:0 0 1rem}
+  .err{background:rgba(255,92,108,.08);border:1px solid rgba(255,92,108,.3);color:var(--bad);
+    padding:.75rem 1rem;border-radius:8px;font-size:.88rem;margin-bottom:1rem}
+  .skel{background:linear-gradient(90deg,var(--panel) 0%,#152038 50%,var(--panel) 100%);background-size:200% 100%;
+    border:1px solid var(--line);border-radius:12px;height:230px;animation:sk 1.4s linear infinite}
+  @keyframes sk{0%{background-position:0% 0}100%{background-position:-200% 0}}
+
+  /* ─── Mobile ────────────────────────────────────────────────── */
+  @media (max-width:640px){
+    .nav-in{padding:.55rem .75rem;gap:.35rem}
+    .nav-links{gap:.1rem;flex:1;justify-content:flex-end}
+    .nav-links a{padding:.4rem .55rem;font-size:.8rem}
+    .nav-links a span.label-long{display:none}
+    main{padding:1rem .75rem 3rem}
+    .lede{font-size:.9rem;margin-bottom:1rem}
+    .actions{gap:.5rem}
+    .actions .btn{flex:1 1 auto}
+    .filters{padding:.7rem .8rem;gap:.5rem}
+    .filters label{font-size:.8rem;flex:1 1 auto}
+    .filters select{flex:1;min-width:6rem}
+    .grid{grid-template-columns:1fr;gap:.85rem}
+    .card-foot{flex-direction:column;align-items:stretch}
+    .card-foot .seller{order:1}
+    .card-foot .price-row{order:2;display:flex;justify-content:space-between;align-items:center}
+    .card-foot .btn{width:auto}
+    /* 16px inputs stop iOS Safari auto-zoom on the filter bar. */
+    .filters input,.filters select{font-size:16px}
+  }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-in">
+    <a class="brand" href="/"><img src="/img/logo.png" alt=""><span>R6CHECKER<span class="brand-dot">.XYZ</span></span></a>
+    <div class="nav-links">
+      <a href="/marketplace" class="act">🛒 <span class="label-long">Marketplace</span></a>
+      <a href="/marketplace/sell">Sell</a>
+      <a href="/marketplace/mine">My listings</a>
+      <a href="/bulk">Bulk</a>
+      <a href="/account">Account</a>
+    </div>
+  </div>
+</nav>
+<main>
+  <h1>Marketplace</h1>
+  <p class="lede">Buy or sell Ubisoft accounts that have been verified through r6checker. <b style="color:var(--text)">No money flows through this site</b> — clicking <b style="color:var(--text)">Buy</b> opens a private Discord channel where you and the seller settle the trade. Listings with the <span class="trust">✓ Trusted</span> badge are sellers the owner has vouched for.</p>
+
+  <div class="actions">
+    <a class="btn" href="/marketplace/sell">+ Sell an account</a>
+    <a class="btn ghost" href="/marketplace/mine">My listings →</a>
+  </div>
+
+  <div class="filters">
+    <label>Trust
+      <select id="f-trust">
+        <option value="">All sellers</option>
+        <option value="1">✓ Trusted only</option>
+        <option value="0">Untrusted only</option>
+      </select>
+    </label>
+    <label>Access
+      <select id="f-access">
+        <option value="">FA + NFA</option>
+        <option value="fa">FA only</option>
+        <option value="nfa">NFA only</option>
+      </select>
+    </label>
+    <label>Max $
+      <input id="f-max" type="number" min="1" step="1" inputmode="numeric" placeholder="any">
+    </label>
+    <button class="btn sm" id="f-apply">Apply</button>
+  </div>
+
+  <div id="err" class="err" hidden></div>
+  <div id="grid" class="grid"></div>
+  <div id="empty" class="empty" hidden>
+    <h3>No listings yet</h3>
+    <p>Be the first — pick an account you've checked and list it for sale.</p>
+    <a class="btn" href="/marketplace/sell">+ Create a listing</a>
+  </div>
+</main>
+<script>
+const $ = (q) => document.querySelector(q);
+const fmt$ = (c) => '$' + (c/100).toFixed(2);
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+async function load() {
+  $('#err').hidden = true;
+  const grid = $('#grid');
+  grid.innerHTML = '<div class="skel"></div>'.repeat(6);
+  $('#empty').hidden = true;
+  const params = new URLSearchParams();
+  if ($('#f-trust').value)  params.set('trust', $('#f-trust').value);
+  if ($('#f-access').value) params.set('access', $('#f-access').value);
+  if ($('#f-max').value)    params.set('max', String(Number($('#f-max').value) * 100));
+  let data;
+  try {
+    const r = await fetch('/api/mp?' + params, { cache:'no-store' });
+    data = await r.json();
+    if (!r.ok) throw new Error(data.error || ('HTTP ' + r.status));
+  } catch (e) {
+    grid.innerHTML = '';
+    $('#err').textContent = '✗ Could not load listings: ' + e.message;
+    $('#err').hidden = false;
+    return;
+  }
+  grid.innerHTML = '';
+  if (!data.listings.length) { $('#empty').hidden = false; return; }
+  for (const l of data.listings) {
+    const p = l.profile || {};
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-head">
+        <img class="avatar" src="${escapeHtml(p.avatar || '/img/logo.png')}" alt="" onerror="this.src='/img/logo.png'">
+        <div style="flex:1;min-width:0">
+          <div class="uname">${escapeHtml(p.username || '(unknown)')}</div>
+          <div class="sub">Lvl ${p.level ?? '?'} ${p.items ? '· ' + p.items + ' items' : ''}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="tags">
+          <span class="tag ${l.accessType}">${l.accessType.toUpperCase()}</span>
+          ${p.currentRank ? `<span class="tag rank">${escapeHtml(p.currentRank)}</span>` : ''}
+          ${p.banned ? `<span class="tag banned">BANNED</span>` : ''}
+        </div>
+        ${l.title ? `<div class="card-title">${escapeHtml(l.title)}</div>` : ''}
+        ${l.description ? `<div class="card-desc">${escapeHtml(l.description)}</div>` : ''}
+      </div>
+      <div class="card-foot">
+        <div class="seller">
+          @<b>${escapeHtml(l.seller.discordUsername || 'unknown')}</b>
+          ${l.seller.trusted ? '<span class="trust">✓ Trusted</span>' : ''}
+          ${p.profileUrl ? `<a href="${escapeHtml(p.profileUrl)}" target="_blank" style="color:var(--brand);font-size:.78rem;text-decoration:none;margin-left:.25rem">profile↗</a>` : ''}
+        </div>
+        <div class="price-row" style="display:flex;align-items:center;gap:.6rem">
+          <span class="price">${fmt$(l.priceCents)}</span>
+          <button class="btn sm" data-buy="${l.id}">Buy</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+async function onBuy(id, btn) {
+  btn.disabled = true; btn.textContent = 'Opening…';
+  try {
+    const r = await fetch(`/api/mp/${id}/buy`, { method:'POST' });
+    const j = await r.json();
+    if (r.status === 401) { location.href = '/account/login?return_to=/marketplace'; return; }
+    if (r.status === 403 && /discord/i.test(j.error || '')) {
+      // Gentle prompt — they need Discord linked + in the guild. Send to OAuth
+      // (the callback auto-joins them via guilds.join).
+      if (confirm('You need to link Discord and join our server first. Open Discord login now?')) {
+        location.href = '/auth/discord?return_to=/marketplace';
+      }
+      btn.disabled = false; btn.textContent = 'Buy';
+      return;
+    }
+    if (!r.ok) throw new Error(j.error || 'Buy failed');
+    alert('✓ Private Discord channel opened — go to the server to settle the trade.');
+    load();
+  } catch (e) {
+    alert('✗ ' + e.message);
+    btn.disabled = false; btn.textContent = 'Buy';
+  }
+}
+
+$('#f-apply').addEventListener('click', load);
+['#f-trust','#f-access'].forEach(s => $(s).addEventListener('change', load));
+$('#f-max').addEventListener('keypress', e => { if (e.key === 'Enter') load(); });
+$('#grid').addEventListener('click', e => {
+  const b = e.target.closest('[data-buy]');
+  if (b) onBuy(b.dataset.buy, b);
+});
+load();
+</script>
+</body>
+</html>

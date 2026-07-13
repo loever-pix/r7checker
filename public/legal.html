@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R6Checker — Terms & Privacy</title>
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    :root{--brand:#3a8dff;--brand-soft:#5aa3ff;--bg:#080b14;--bg-card:#111827;
+          --border:#1e2842;--text:#e7ecf6;--text-dim:#8593ad;--discord:#5865f2;}
+    *{box-sizing:border-box;}
+    body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;
+         margin:0;line-height:1.65;}
+    body::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+      background-repeat:no-repeat;background-position:center top;background-size:cover;
+      background-image:linear-gradient(180deg,rgba(8,11,20,.9),rgba(8,11,20,.95) 58%,var(--bg) 88%),
+        radial-gradient(circle at 20% 0%,rgba(58,141,255,.10),transparent 50%),
+        url('/img/ayanokoji/hero-1280.webp');}
+    .wrap{max-width:780px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+    .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem;}
+    .home{display:inline-flex;align-items:center;gap:.5rem;color:var(--text-dim);text-decoration:none;font-size:.9rem;}
+    .home:hover{color:var(--brand-soft);}
+    .home img{width:26px;height:26px;}
+    .discord-btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--discord);color:#fff;
+                 padding:.5rem .9rem;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600;}
+    .discord-btn:hover{background:#4752c4;}
+    .discord-btn svg{width:18px;height:18px;fill:currentColor;}
+    h1{font-size:1.9rem;font-weight:800;margin:.2rem 0 .3rem;}
+    h1 .dot{color:#cad3dc;}
+    .updated{color:var(--text-dim);font-size:.82rem;margin-bottom:1.5rem;}
+    .toc{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:2rem;}
+    .toc a{display:block;color:var(--brand-soft);text-decoration:none;font-size:.9rem;padding:.2rem 0;}
+    .toc a:hover{text-decoration:underline;}
+    .toc .grp{color:var(--text-dim);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;margin:.6rem 0 .2rem;}
+    section{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.3rem 1.5rem;margin-bottom:1.5rem;}
+    h2{font-size:1.25rem;color:var(--brand-soft);margin:.2rem 0 .9rem;}
+    h3{font-size:1rem;margin:1.2rem 0 .3rem;color:var(--text);}
+    p,li{color:#cdd6e6;font-size:.93rem;}
+    ul{padding-left:1.2rem;}
+    li{margin:.3rem 0;}
+    a.inline{color:var(--brand-soft);}
+    .note{background:rgba(58,141,255,.08);border-left:3px solid var(--brand);border-radius:4px;padding:.7rem 1rem;font-size:.88rem;color:#cdd6e6;margin:1rem 0;}
+    footer{text-align:center;color:var(--text-dim);font-size:.8rem;padding-top:1rem;}
+    footer a{color:var(--brand-soft);text-decoration:none;}
+    @media (max-width:640px){
+      .wrap{padding:1.4rem 1rem 3rem;}
+      h1{font-size:1.55rem;}
+      h2{font-size:1.1rem;}
+      section{padding:1.1rem 1.1rem;border-radius:10px;}
+      .toc{padding:.9rem 1rem;}
+      .top .discord-btn{padding:.45rem .75rem;}
+    }
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="home" href="/"><img src="/img/logo.png" alt="">← Back to R6Checker</a>
+      <a class="discord-btn" href="https://discord.gg/gnPB2JBPS6" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.444.864-.608 1.249a18.27 18.27 0 0 0-5.487 0 12.65 12.65 0 0 0-.617-1.249.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        Support
+      </a>
+    </div>
+
+    <h1>Terms &amp; Privacy<span class="dot">.</span></h1>
+    <div class="updated">Last updated: 1 June 2026</div>
+
+    <div class="toc">
+      <div class="grp">Terms of Service</div>
+      <a href="#tos-1">1. About the service</a>
+      <a href="#tos-2">2. Eligibility &amp; accounts</a>
+      <a href="#tos-3">3. Acceptable use</a>
+      <a href="#tos-4">4. Credits, payments &amp; deposits</a>
+      <a href="#tos-5">5. Refunds</a>
+      <a href="#tos-6">6. No warranty &amp; limitation of liability</a>
+      <a href="#tos-7">7. Suspension &amp; termination</a>
+      <a href="#tos-8">8. Changes to these terms</a>
+      <div class="grp">Privacy Policy</div>
+      <a href="#pp-1">9. What we collect</a>
+      <a href="#pp-2">10. Checked-account data</a>
+      <a href="#pp-3">11. How we use &amp; retain data</a>
+      <a href="#pp-4">12. Third parties</a>
+      <a href="#pp-5">13. Security</a>
+      <a href="#pp-6">14. Your choices &amp; contact</a>
+    </div>
+
+    <div class="note">
+      <strong>Not affiliated with Ubisoft.</strong> R6Checker is an independent, unofficial
+      tool. "Rainbow Six", "Siege", and related marks belong to Ubisoft Entertainment.
+      Use this service only with accounts you own or are authorised to access.
+    </div>
+
+    <!-- ───────────────────────── TERMS OF SERVICE ───────────────────────── -->
+    <section id="tos-1">
+      <h2>1. About the service</h2>
+      <p>R6Checker ("we", "us", "the service", accessible at r6checker.xyz) lets you look up
+      publicly-derived Rainbow Six Siege account information — level, inventory, ranked
+      season history, linked platforms, and ban status — by signing in with Ubisoft
+      credentials you provide, either one at a time or in bulk.</p>
+      <p>By creating a site account, depositing funds, or running a check, you agree to these
+      Terms of Service and the Privacy Policy below. If you do not agree, do not use the service.</p>
+    </section>
+
+    <section id="tos-2">
+      <h2>2. Eligibility &amp; accounts</h2>
+      <ul>
+        <li>You must be at least 18 years old, or the age of majority in your jurisdiction, to use the service.</li>
+        <li>Your R6Checker site account (email + password) is separate from any Ubisoft account. You are responsible for keeping its credentials secure.</li>
+        <li>You are responsible for all activity that occurs under your site account and for the security of any Ubisoft credentials you submit for checking.</li>
+      </ul>
+    </section>
+
+    <section id="tos-3">
+      <h2>3. Acceptable use</h2>
+      <p>You agree to use the service only with Ubisoft accounts that you own or are expressly
+      authorised to access. You must <strong>not</strong>:</p>
+      <ul>
+        <li>Submit credentials for accounts you do not own or have no right to access;</li>
+        <li>Use the service to facilitate account theft, fraud, credential-stuffing, or any unlawful activity;</li>
+        <li>Resell, redistribute, or scrape the service or its outputs at scale without permission;</li>
+        <li>Attempt to disrupt, overload, reverse-engineer, or circumvent the security or rate limits of the service.</li>
+      </ul>
+      <p>You are solely responsible for ensuring your use complies with Ubisoft's Terms of Use
+      and all applicable laws.</p>
+    </section>
+
+    <section id="tos-4">
+      <h2>4. Credits, payments &amp; deposits</h2>
+      <ul>
+        <li>The service runs on a prepaid credit balance. You add credit by depositing cryptocurrency through our payment processor (NOWPayments).</li>
+        <li>Deposits are denominated in USD. The minimum deposit and the per-check price are shown on the site and may change; the price in effect at the time of a check applies.</li>
+        <li>Each definitive check outcome (a successful login result, or a confirmed wrong-password result) deducts the per-check price from your balance. Non-definitive outcomes (e.g. 2FA prompts, anti-bot blocks, or network failures) are not charged.</li>
+        <li>Credit has no cash value, is not interest-bearing, and is usable only within the service.</li>
+        <li>Cryptocurrency transactions are irreversible. You are responsible for sending the correct amount and asset to the address provided.</li>
+      </ul>
+    </section>
+
+    <section id="tos-5">
+      <h2>5. Refunds</h2>
+      <p>Because checks consume third-party resources (proxies, infrastructure) the moment they
+      run, completed checks are non-refundable. Unused credit balance is generally
+      non-refundable, except where required by law. If you believe you were charged in error
+      (for example, billed on a non-definitive outcome), contact us via Discord and we will
+      review and, where appropriate, credit your balance.</p>
+    </section>
+
+    <section id="tos-6">
+      <h2>6. No warranty &amp; limitation of liability</h2>
+      <p>The service is provided "as is" and "as available", without warranties of any kind.
+      Account data is derived from Ubisoft and third-party sources that may be incomplete,
+      delayed, rate-limited, or temporarily unavailable; we do not guarantee the accuracy,
+      completeness, or availability of any result.</p>
+      <p>To the maximum extent permitted by law, our total liability arising from your use of the
+      service is limited to the amount of credit you spent in the 30 days before the event
+      giving rise to the claim. We are not liable for indirect, incidental, or consequential
+      damages, including loss of access to any Ubisoft account.</p>
+    </section>
+
+    <section id="tos-7">
+      <h2>7. Suspension &amp; termination</h2>
+      <p>We may suspend or terminate your access at any time, with or without notice, if we
+      reasonably believe you have violated these terms or used the service unlawfully. On
+      termination for cause, remaining credit may be forfeited.</p>
+    </section>
+
+    <section id="tos-8">
+      <h2>8. Changes to these terms</h2>
+      <p>We may update these terms from time to time. Material changes will be reflected by the
+      "Last updated" date above. Continued use after changes take effect constitutes acceptance.</p>
+    </section>
+
+    <!-- ───────────────────────── PRIVACY POLICY ───────────────────────── -->
+    <section id="pp-1">
+      <h2>9. What we collect</h2>
+      <ul>
+        <li><strong>Site account:</strong> your email address and a securely hashed (scrypt) password. We never store your site password in plaintext.</li>
+        <li><strong>Billing:</strong> deposit amounts, currency, status, and the payment-processor invoice/transaction identifiers. We do not receive or store your card details or wallet keys.</li>
+        <li><strong>Usage:</strong> a transaction/audit log of credits, charges, and bulk-job metadata, plus standard server logs (IP address, timestamps) used for security and rate-limiting.</li>
+      </ul>
+    </section>
+
+    <section id="pp-2">
+      <h2>10. Checked-account data</h2>
+      <p>To run a check you submit a Ubisoft email and password. These credentials are used
+      transiently to authenticate the requested check and are <strong>not stored in our
+      database</strong>. Check results — which include the submitted email and password in the
+      output line so you can identify the account — are written to an encrypted results file
+      (AES-256-GCM) tied to your bulk job.</p>
+      <div class="note">Bulk result files are <strong>encrypted at rest and automatically deleted
+      after 30 days.</strong> Re-download anytime from your account before then.</div>
+    </section>
+
+    <section id="pp-3">
+      <h2>11. How we use &amp; retain data</h2>
+      <ul>
+        <li>To operate the service: authenticate you, process deposits, run checks, and maintain your balance.</li>
+        <li>To secure the service: detect abuse, enforce rate limits, and prevent fraud.</li>
+        <li><strong>Retention:</strong> bulk result files are kept for 30 days (re-downloadable from your account) then deleted. Old sessions are swept periodically. Account, balance, and transaction records are kept while your account exists and as needed for legitimate business and legal purposes.</li>
+      </ul>
+    </section>
+
+    <section id="pp-4">
+      <h2>12. Third parties</h2>
+      <p>We share the minimum necessary data with service providers that make the product work:</p>
+      <ul>
+        <li><strong>NOWPayments</strong> — cryptocurrency deposit processing.</li>
+        <li><strong>Cloudflare</strong> — DNS, CDN, and edge security.</li>
+        <li><strong>Email provider</strong> — transactional email (e.g. password resets).</li>
+        <li><strong>Ubisoft and public R6 data sources</strong> — queried to produce check results.</li>
+      </ul>
+      <p>We do not sell your personal data.</p>
+    </section>
+
+    <section id="pp-5">
+      <h2>13. Security</h2>
+      <p>We use scrypt password hashing, single-use time-limited password-reset tokens,
+      HttpOnly session cookies, HMAC-verified payment webhooks, AES-256-GCM encryption of
+      result files, and standard transport encryption (HTTPS). No system is perfectly secure;
+      you use the service at your own risk and should use a unique password for your site account.</p>
+    </section>
+
+    <section id="pp-6">
+      <h2>14. Your choices &amp; contact</h2>
+      <p>You may request deletion of your site account and associated personal data by contacting
+      us on Discord. Some records may be retained where required for legal or anti-fraud purposes.
+      For any privacy or terms question, reach us at our
+      <a class="inline" href="https://discord.gg/gnPB2JBPS6" target="_blank" rel="noopener noreferrer">Discord support server</a>.</p>
+    </section>
+
+    <footer>
+      R6CHECKER.XYZ — Unofficial. Not affiliated with Ubisoft.
+      <span style="margin:0 .4rem">·</span>
+      <a href="/">Home</a>
+      <span style="margin:0 .4rem">·</span>
+      <a href="https://discord.gg/gnPB2JBPS6" target="_blank" rel="noopener noreferrer">Support</a>
+    </footer>
+  </div>
+</body>
+</html>

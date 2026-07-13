@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>R6Checker — Owner Control Panel</title>
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --brand: #3a8dff;
+      --brand-soft: #5aa3ff;
+      --accent: #3a8dff;
+      --accent-soft: #6aa6ff;
+      --accent-ring: rgba(58, 141, 255, 0.22);
+      --bg: #080b14;
+      --bg-card: #111827;
+      --bg-input: #0b1220;
+      --border: #1e2842;
+      --border-hover: #2c3a5e;
+      --text: #e7ecf6;
+      --text-dim: #8593ad;
+      --pos: #34d399;
+      --neg: #f87171;
+      --warning: #fbbf24;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, 'Segoe UI', -apple-system, 'Inter', sans-serif;
+      margin: 0;
+      line-height: 1.4;
+    }
+
+    /* subtle overlay gradient */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: radial-gradient(circle at 20% 0%, rgba(58, 141, 255, 0.12), transparent 55%),
+                  radial-gradient(circle at 85% 100%, rgba(90, 163, 255, 0.06), transparent 60%);
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 4rem;
+    }
+
+    /* top bar */
+    .top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .top a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .top a:hover {
+      color: var(--brand-soft);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, #fff, var(--brand-soft));
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    h1 .dot {
+      color: var(--brand);
+      background: none;
+      background-clip: unset;
+      -webkit-background-clip: unset;
+      color: var(--brand);
+    }
+
+    .sub {
+      color: var(--text-dim);
+      font-size: 0.8rem;
+      margin-top: 0.2rem;
+    }
+
+    /* cards grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.1rem 1.2rem;
+      transition: transform 0.1s ease, border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--brand);
+    }
+
+    .card .label {
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.45rem;
+    }
+
+    .card .value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    .card .value.money {
+      color: var(--pos);
+    }
+
+    .card .sub2 {
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--brand-soft);
+      margin: 1.5rem 0 0.9rem;
+      letter-spacing: -0.2px;
+      border-left: 3px solid var(--brand);
+      padding-left: 0.75rem;
+    }
+
+    /* bar chart */
+    .chart {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.2rem;
+    }
+
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 170px;
+    }
+
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .bar {
+      width: 100%;
+      background: linear-gradient(0deg, var(--brand), #2a6fd0);
+      border-radius: 4px 4px 0 0;
+      min-height: 2px;
+      transition: height 0.2s;
+    }
+
+    .bar-col .d {
+      color: var(--text-dim);
+      font-size: 0.6rem;
+      white-space: nowrap;
+    }
+
+    .bar-col .v {
+      color: var(--text);
+      font-size: 0.6rem;
+      font-weight: 500;
+    }
+
+    /* panels & inputs */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.2rem 1.3rem;
+      margin-bottom: 1.6rem;
+    }
+
+    .grant-row {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+
+    input, textarea, button {
+      font-family: inherit;
+    }
+
+    input, textarea {
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      padding: 0.6rem 0.8rem;
+      font-size: 0.85rem;
+      transition: 0.15s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(58, 141, 255, 0.2);
+    }
+
+    button.refresh, button {
+      background: var(--brand);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 0.55rem 1rem;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button.refresh:hover {
+      background: var(--brand-soft);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+      transform: none;
+    }
+
+    .grant-msg, .px-msg, .vwi-msg {
+      font-size: 0.85rem;
+      margin-top: 0.8rem;
+      min-height: 1.2rem;
+    }
+
+    .grant-msg.ok, .grant-msg.ok { color: var(--pos); }
+    .grant-msg.err, .grant-msg.err { color: var(--neg); }
+    .px-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      background: #0b1220;
+      padding: 0.35rem 0.8rem;
+      border-radius: 40px;
+      border: 1px solid var(--border);
+    }
+
+    #px-status .on { color: var(--pos); font-weight: bold; }
+    #px-status .off { color: var(--neg); font-weight: bold; }
+    #px-status code {
+      background: #0b1220;
+      padding: 0.2rem 0.4rem;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+
+    /* vwi styles */
+    .vwi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 1.2rem;
+      margin-top: 1rem;
+    }
+
+    .vwi-h {
+      font-size: 0.8rem;
+      color: var(--brand-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0 0 0.6rem 0;
+    }
+
+    .vwi-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .vwi-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0b1220;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.55rem 0.9rem;
+      transition: background 0.1s;
+    }
+
+    .vwi-row .lbl {
+      font-size: 0.85rem;
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    .vwi-row .cnt {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .vwi-row .cnt.has {
+      color: var(--pos);
+    }
+
+    .vwi-row.zero {
+      opacity: 0.5;
+    }
+
+    .vwi-dl {
+      background: var(--brand);
+      border: none;
+      border-radius: 7px;
+      padding: 0.22rem 0.65rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: white;
+      transition: 0.1s;
+    }
+
+    .vwi-dl:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Per-bucket Download ▾ dropdown (filter by console linkability) */
+    .vwi-ddwrap { position: relative; }
+    .vwi-ddmenu {
+      position: absolute; right: 0; top: calc(100% + 4px); z-index: 30;
+      min-width: 172px; padding: 0.25rem;
+      background: #0c1322; border: 1px solid var(--border); border-radius: 9px;
+      box-shadow: 0 10px 26px rgba(0,0,0,0.5);
+      display: none; flex-direction: column; gap: 1px;
+    }
+    .vwi-ddwrap.open .vwi-ddmenu { display: flex; }
+    .vwi-ddmenu button {
+      display: flex; align-items: center; justify-content: space-between; gap: 0.7rem;
+      width: 100%; text-align: left; background: transparent; border: none;
+      color: var(--text); font-size: 0.72rem; font-weight: 500;
+      padding: 0.4rem 0.55rem; border-radius: 6px; cursor: pointer; transition: 0.1s;
+    }
+    .vwi-ddmenu button:hover:not(:disabled) { background: rgba(58,141,255,0.16); }
+    .vwi-ddmenu button:disabled { opacity: 0.3; cursor: not-allowed; }
+    .vwi-ddmenu button .n { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+    .vwi-ddmenu .ddsep { height: 1px; background: var(--border); margin: 2px 0; }
+
+    .vwi-total {
+      margin-top: 1.2rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+
+    #vwi-file {
+      background: #0b1220;
+      padding: 0.45rem;
+    }
+
+    @media (max-width: 640px) {
+      .wrap { padding: 1rem; }
+      .card .value { font-size: 1.4rem; }
+      .grant-row { flex-direction: column; align-items: stretch; }
+      .grant-row input, .grant-row button { width: 100%; }
+      .bars { height: 130px; }
+    }
+
+    .err-state {
+      color: var(--neg);
+      text-align: center;
+      padding: 2rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       Consolidated theme — single coherent professional dark UI.
+       (Overrides the legacy rules above; keeps all class names intact.)
+       ═══════════════════════════════════════════════════════════════ */
+    body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body::after { opacity: 0.5; }
+
+    .wrap { max-width: 1080px; padding: 0 1.25rem 4rem; }
+
+    /* ── Sticky top bar ── */
+    .top {
+      position: sticky; top: 0; z-index: 40;
+      margin: 0 -1.25rem 1.6rem; padding: 0.95rem 1.25rem;
+      background: rgba(8, 11, 20, 0.78); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      align-items: center;
+    }
+    h1 {
+      font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em;
+      display: inline-flex; align-items: baseline; gap: 0.35rem;
+    }
+    h1 .owner { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-dim);
+      -webkit-text-fill-color: var(--text-dim); padding: 0.12rem 0.45rem;
+      border: 1px solid var(--border); border-radius: 999px; }
+    .sub { color: var(--text-dim); font-size: 0.78rem; }
+    #generated { margin-top: 0.25rem; }
+
+    /* ── Section eyebrow labels ── */
+    .section-label {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em;
+      color: var(--text-dim); font-weight: 600; margin: 2.1rem 0 0.95rem;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent); }
+
+    /* ── KPI stat cards ── */
+    .grid { gap: 0.8rem; margin-bottom: 1.4rem;
+      grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); }
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1.05rem 1.15rem;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .card:hover { border-color: var(--border-hover); background: #141d31; transform: none; }
+    .card .label { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--text-dim); margin-bottom: 0.5rem; }
+    .card .value { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.02em; }
+    .card .value.money { color: var(--pos); }
+    .card .sub2 { font-size: 0.72rem; color: var(--text-dim); margin-top: 0.45rem; }
+
+    /* ── Panel / section titles ── */
+    h2 {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.98rem; font-weight: 650; text-transform: none; letter-spacing: -0.01em;
+      color: var(--text); border-left: none; padding-left: 0;
+      margin: 1.6rem 0 0.3rem;
+    }
+    #analytics-area h2 { margin: 1.8rem 0 0.9rem; }
+    #analytics-area h2:first-child { margin-top: 0; }
+    .panel h2 { margin-top: 0; }
+    .panel > .sub { font-size: 0.78rem; line-height: 1.5; margin-bottom: 0.85rem !important; }
+
+    /* ── Tool panels ── */
+    .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    @media (max-width: 820px) { .tools-grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 1.2rem 1.3rem; margin-bottom: 1rem; box-shadow: none;
+    }
+    .tools-grid .panel { margin-bottom: 0; height: 100%; }
+
+    /* ── Inputs & selects ── */
+    input, textarea, select {
+      background: var(--bg-input); border: 1px solid var(--border); border-radius: 9px;
+      color: var(--text); font-size: 0.84rem; padding: 0 0.8rem; height: 38px; transition: 0.15s;
+    }
+    select { -webkit-appearance: none; appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238593ad' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.65rem center; padding-right: 2rem; }
+    textarea { height: auto; padding: 0.6rem 0.8rem; line-height: 1.45; resize: vertical; width: 100%; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-ring); }
+    input:hover, textarea:hover, select:hover { border-color: var(--border-hover); }
+    input::placeholder, textarea::placeholder { color: #4d597a; }
+    input[type=file] { height: auto; padding: 0.4rem 0.55rem; color: var(--text-dim); cursor: pointer; }
+    input[type=file]::file-selector-button { background: rgba(58,141,255,0.14); color: var(--accent-soft);
+      border: none; border-radius: 7px; padding: 0.4rem 0.75rem; margin-right: 0.7rem;
+      font-weight: 600; cursor: pointer; font-family: inherit; }
+
+    /* ── Buttons ── */
+    button.refresh {
+      background: var(--accent); color: #fff; border: none; border-radius: 9px;
+      height: 38px; padding: 0 1.05rem; font-weight: 600; font-size: 0.8rem; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
+      transition: background 0.15s, transform 0.08s; box-shadow: none;
+    }
+    button.refresh:hover { background: var(--accent-soft); transform: none; }
+    button.refresh:active { transform: translateY(1px); }
+    button:disabled { opacity: 0.5; cursor: default; transform: none; }
+    .top .refresh { background: rgba(58,141,255,0.1); color: var(--accent-soft);
+      border: 1px solid var(--border); }
+    .top .refresh:hover { background: rgba(58,141,255,0.18); }
+
+    /* ── Rows & messages ── */
+    .grant-row { gap: 0.5rem; align-items: center; margin-top: 0.2rem; }
+    .grant-row input { flex: 1 1 150px; min-width: 0; }
+    .grant-msg { font-size: 0.8rem; margin-top: 0.7rem; }
+
+    /* ── Proxy status pills ── */
+    #px-status code { background: var(--bg-input); border: 1px solid var(--border);
+      padding: 0.15rem 0.45rem; border-radius: 6px; }
+    .px-toggle { height: 38px; border-radius: 9px; background: var(--bg-input); }
+
+    /* ── Toggle switch ── */
+    .switch { display: inline-flex; align-items: center; gap: 0.6rem; height: 38px;
+      cursor: pointer; user-select: none; }
+    .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .switch .slider { position: relative; width: 42px; height: 23px; flex: none;
+      background: #1c2742; border: 1px solid var(--border); border-radius: 999px; transition: 0.2s; }
+    .switch .slider::before { content: ''; position: absolute; top: 2px; left: 2px;
+      width: 17px; height: 17px; border-radius: 50%; background: #8593ad; transition: 0.2s; }
+    .switch input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+    .switch input:checked + .slider::before { transform: translateX(19px); background: #fff; }
+    .switch input:focus-visible + .slider { box-shadow: 0 0 0 3px var(--accent-ring); }
+    .switch .switch-txt { font-size: 0.82rem; color: var(--text-dim); white-space: nowrap; }
+
+    /* ── Chart ── */
+    .chart { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; }
+    .bar { background: linear-gradient(180deg, var(--accent-soft), var(--accent)); border-radius: 4px 4px 0 0; }
+
+    /* ── VWI buckets ── */
+    .vwi-grid { gap: 1rem; }
+    .vwi-h { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-dim); font-weight: 600; }
+    .vwi-row { background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px;
+      padding: 0.5rem 0.85rem; transition: border-color 0.12s; }
+    .vwi-row:hover { border-color: var(--border-hover); }
+    .vwi-row.zero { opacity: 0.45; }
+    .vwi-dl { background: rgba(58,141,255,0.12); color: var(--accent-soft); border: none;
+      border-radius: 7px; padding: 0.25rem 0.6rem; font-size: 0.7rem; font-weight: 600; }
+    .vwi-dl:hover:not(:disabled) { background: rgba(58,141,255,0.22); }
+    .vwi-dl:disabled { opacity: 0.4; cursor: default; }
+    .vwi-push { background: rgba(22,163,74,0.14); color: #4ade80; }
+    .vwi-push:hover:not(:disabled) { background: rgba(22,163,74,0.26); }
+    .vwi-total { color: var(--text-dim); }
+
+    /* VWI push modal */
+    .vwi-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .vwi-modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+      width: min(680px, 94vw); max-height: 86vh; display: flex; flex-direction: column; }
+    .vwi-modal-head { display:flex; justify-content:space-between; align-items:center;
+      padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border); }
+    .vwi-modal-x { background:none; border:none; color: var(--text-dim); font-size: 1rem; cursor:pointer; }
+    .vwi-modal-body { padding: 0.9rem 1.1rem; overflow-y:auto; font-size: 0.82rem; }
+    .vwi-modal-foot { display:flex; justify-content:flex-end; gap:0.6rem;
+      padding: 0.8rem 1.1rem; border-top: 1px solid var(--border); }
+    .vwi-plan-row { display:flex; justify-content:space-between; gap:0.6rem; padding:0.3rem 0;
+      border-bottom: 1px dashed var(--border); }
+    .vwi-plan-row .new { color: #fbbf24; }
+    .vwi-plan-row .has { color: var(--text-dim); }
+    .vwi-plan-sum { margin-top: 0.7rem; font-weight: 600; }
+
+    .loading { text-align: center; padding: 2.5rem 1rem; color: var(--text-dim); font-size: 0.85rem; }
+    .err-state { color: var(--neg); text-align: center; padding: 2rem;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>R6Checker<span class="dot">.</span> <span class="owner">owner</span></h1>
+      <div class="sub" id="generated">—</div>
+    </div>
+    <div style="display: flex; gap: 0.7rem; align-items: center;">
+      <button class="refresh" id="refreshBtn">↻ Refresh data</button>
+      <a href="/account" class="sub">← Account portal</a>
+    </div>
+  </div>
+
+  <!-- KPI dashboard (stats first) -->
+  <div id="analytics-area">
+    <div class="loading">Loading dashboard stats…</div>
+  </div>
+
+  <div class="section-label">Owner tools</div>
+  <div class="tools-grid">
+    <!-- balance grant panel -->
+    <div class="panel">
+      <h2>✧ Give / adjust balance</h2>
+      <div class="sub" style="margin-bottom: 0.6rem;">Add USD credit to a user's checker balance (server-proxy, pay-per-check).</div>
+      <div class="grant-row">
+        <input id="g-email" type="email" placeholder="user@example.com" autocomplete="off">
+        <input id="g-amount" type="number" min="0.01" step="0.01" placeholder="Amount (USD)">
+        <input id="g-reason" type="text" placeholder="Optional reason" maxlength="200">
+        <button id="g-submit" class="refresh">➕ Add credit</button>
+      </div>
+      <div id="g-msg" class="grant-msg"></div>
+    </div>
+
+    <!-- BYO-proxy access pass grant -->
+    <div class="panel">
+      <h2>🎟️ BYO‑proxy access pass</h2>
+      <div class="sub" style="margin-bottom: 0.6rem;">Grant free bulk checks with the user's own proxies for N days (stacks on remaining time).</div>
+      <div class="grant-row">
+        <input id="ac-email" type="email" placeholder="user@example.com" autocomplete="off">
+        <input id="ac-days" type="number" min="1" step="1" placeholder="Days (e.g. 7)">
+        <button id="ac-submit" class="refresh">🎟️ Grant access</button>
+      </div>
+      <div id="ac-msg" class="grant-msg"></div>
+    </div>
+  </div>
+
+  <div class="section-label">Infrastructure</div>
+  <!-- proxy panel (DataImpulse) -->
+  <div class="panel">
+    <h2>🌐 Proxy gateway (DataImpulse)</h2>
+    <div id="px-status" class="sub" style="margin-bottom: 0.7rem;">Loading proxy config...</div>
+    <div class="grant-row">
+      <input id="px-user" type="text" placeholder="Proxy username" autocomplete="off">
+      <input id="px-pass" type="password" placeholder="Password (blank = unchanged)" autocomplete="new-password">
+      <input id="px-host" type="text" placeholder="gw.dataimpulse.com">
+      <input id="px-port" type="text" placeholder="823" style="width: 100px;">
+      <label class="switch"><input id="px-enabled" type="checkbox"><span class="slider"></span><span class="switch-txt">Enable proxy</span></label>
+      <button id="px-submit" class="refresh">Test &amp; save</button>
+    </div>
+    <div id="px-msg" class="grant-msg"></div>
+  </div>
+
+  <div class="section-label">Diagnostics &amp; support</div>
+  <!-- diagnostics + support -->
+  <div class="tools-grid">
+    <div class="panel">
+      <h2>✉️ Test email (SMTP)</h2>
+      <div class="sub" style="margin-bottom:.6rem;">Send a test email to verify SMTP works. Blank = your owner email.</div>
+      <div class="grant-row">
+        <input id="te-to" type="email" placeholder="recipient (optional)" autocomplete="off">
+        <button id="te-submit" class="refresh">Send test</button>
+      </div>
+      <div id="te-msg" class="grant-msg"></div>
+    </div>
+    <div class="panel">
+      <h2>🧪 Test purchase (email key)</h2>
+      <div class="sub" style="margin-bottom:.6rem;">Runs the real buy→email flow and sends the license key. Doesn't charge or extend access. Blank = your owner email.</div>
+      <div class="grant-row">
+        <input id="tp-email" type="email" placeholder="buyer@example.com (optional)" autocomplete="off">
+        <button id="tp-submit" class="refresh">Test purchase</button>
+      </div>
+      <div id="tp-msg" class="grant-msg"></div>
+    </div>
+    <div class="panel">
+      <h2>🔓 Reset device lock</h2>
+      <div class="sub" style="margin-bottom:.6rem;">Clear a user's CLI HWID lock so they can use their key on a new PC.</div>
+      <div class="grant-row">
+        <input id="hw-email" type="email" placeholder="user@example.com" autocomplete="off">
+        <button id="hw-submit" class="refresh">Reset HWID</button>
+      </div>
+      <div id="hw-msg" class="grant-msg"></div>
+    </div>
+    <div class="panel">
+      <h2>✅ Trusted seller (marketplace)</h2>
+      <div class="sub" style="margin-bottom:.6rem;">Grant/revoke the green <b>✓ Trusted</b> badge next to a seller's Discord name on /marketplace listings.</div>
+      <div class="grant-row">
+        <input id="mp-email" type="email" placeholder="seller@example.com" autocomplete="off">
+        <select id="mp-trust">
+          <option value="1">Grant trusted</option>
+          <option value="0">Revoke trusted</option>
+        </select>
+        <button id="mp-submit" class="refresh">Apply</button>
+      </div>
+      <div id="mp-msg" class="grant-msg"></div>
+    </div>
+  </div>
+
+  <div class="section-label">Discord OAuth — mass invite</div>
+  <div class="panel">
+    <h2>🚀 Mass-invite verified users to a guild</h2>
+    <div class="sub" style="margin-bottom:.6rem;">
+      Pick a target guild — the bot will run <code>guilds.join</code> for every saved OAuth in the DB
+      (refreshing access tokens automatically). Each user gets added unless they're already a member.
+      <br><strong>Total saved OAuths:</strong> <b id="oauth-total">—</b>
+    </div>
+    <div class="grant-row">
+      <select id="oauth-guild" style="flex:1 1 280px;min-width:0;">
+        <option value="">Loading guilds…</option>
+      </select>
+      <button id="oauth-invite-btn" class="refresh" disabled>🚀 Mass invite</button>
+    </div>
+    <div id="oauth-msg" class="grant-msg"></div>
+    <pre id="oauth-result" style="display:none;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem;font-size:.78rem;color:var(--text-dim);white-space:pre-wrap;line-height:1.5;max-height:240px;overflow:auto;margin-top:.6rem;"></pre>
+  </div>
+
+  <div class="section-label">Pricing (live)</div>
+  <div class="panel">
+    <h2>💰 Pricing overrides</h2>
+    <div class="sub" style="margin-bottom:.6rem;">Edit the JSON below to override any pricing value. Missing keys fall back to defaults. Saves instantly — no restart needed. Every VWI push + re-sort computed after Save uses the new numbers.</div>
+    <div style="display:flex;gap:.6rem;margin-bottom:.5rem;flex-wrap:wrap;">
+      <button class="refresh" id="pricing-reset-defaults" title="Copy the built-in defaults into the editor (does not save)">📋 Load defaults</button>
+      <button class="refresh" id="pricing-clear" title="Clear all overrides (empty {} — everything falls back to code defaults)">🗑️ Clear overrides</button>
+      <button class="refresh" id="pricing-save" style="background:#16a34a;border-color:#16a34a;">💾 Save</button>
+      <span id="pricing-msg" class="grant-msg" style="align-self:center;"></span>
+    </div>
+    <textarea id="pricing-editor" spellcheck="false" style="width:100%;min-height:22rem;font-family:ui-monospace,Consolas,monospace;font-size:.8rem;line-height:1.4;background:var(--bg-input);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:.6rem;"></textarea>
+    <details style="margin-top:.5rem;">
+      <summary style="cursor:pointer;color:var(--text-dim);font-size:.85rem;">Effective values (defaults + overrides merged)</summary>
+      <pre id="pricing-effective" style="margin-top:.5rem;padding:.6rem;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;font-size:.75rem;overflow:auto;max-height:20rem;"></pre>
+    </details>
+  </div>
+
+  <div class="section-label">Account sorting</div>
+  <!-- VWI sorter + analyzer -->
+  <div class="panel">
+    <h2>📊 VWI sorter (wanted ranks & items)</h2>
+    <div class="sub" style="margin-bottom: 0.5rem;">
+      Upload bulk results file or paste lines. VWI = valid + linkable + non‑banned account that has at least one wanted rank (Plat–Champ) OR wanted skin.<br>
+      <strong>Banned & non‑linkable accounts are excluded completely.</strong>
+    </div>
+    <div class="grant-row" style="margin-top: 0.5rem;">
+      <input type="file" id="vwi-file" accept=".txt, text/plain">
+      <button id="vwi-analyze" class="refresh">🔍 Analyze</button>
+    </div>
+    <textarea id="vwi-paste" rows="3" placeholder="Paste result lines here (one per account)&#10;Example: email:pass | User: X | Lvl: 98 | Ranks: Diamond (S41) | Skins: 1× Glacier | Linkable: XBX | Banned: No"></textarea>
+    <div id="vwi-msg" class="grant-msg"></div>
+    <div id="vwi-results" style="display: none; margin-top: 1rem;">
+      <div class="vwi-grid">
+        <div><div class="vwi-h">🏆 Wanted ranks (highest)</div><div id="vwi-ranks" class="vwi-list"></div></div>
+        <div><div class="vwi-h">✨ Wanted items (skins)</div><div id="vwi-items" class="vwi-list"></div></div>
+      </div>
+      <div class="vwi-h" style="margin-top: 1rem;">🚫 Banned VWI (banned but valuable)</div>
+      <div id="vwi-banned" class="vwi-list"></div>
+      <div class="vwi-h" style="margin-top: 1rem;">🗂️ Leftovers (no VWI) by level</div>
+      <div id="vwi-leftovers" class="vwi-list"></div>
+      <div id="vwi-total" class="vwi-total"></div>
+      <div style="margin-top: 1rem; display:flex; justify-content:flex-end;">
+        <button id="vwi-push-all" class="refresh">🛒 Push all to SellAuth…</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VWI push dry-run preview / confirm modal -->
+  <div id="vwi-modal" class="vwi-modal-overlay" style="display:none;">
+    <div class="vwi-modal">
+      <div class="vwi-modal-head">
+        <strong id="vwi-modal-title">Push to SellAuth</strong>
+        <button id="vwi-modal-x" class="vwi-modal-x" title="Close">✕</button>
+      </div>
+      <div id="vwi-modal-body" class="vwi-modal-body"></div>
+      <div class="vwi-modal-foot">
+        <button id="vwi-modal-cancel" class="refresh">Cancel</button>
+        <button id="vwi-modal-confirm" class="refresh" style="background:#16a34a;border-color:#16a34a;">Confirm push</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Shared VWI bucket classifier (also require()'d by node test scripts). Must
+     load before the inline script below, which references window.VwiBuckets. -->
+<script src="/js/vwiBuckets.js"></script>
+<script>
+  (function(){
+    // ----- helpers -----
+    // Accepts both "#id"/".class" selectors AND a bare id (callers mix both).
+    const $ = (sel) => document.querySelector(/^[#.\[]/.test(sel) ? sel : '#' + sel);
+    const moneyCents = (cents) => '$' + (Number(cents||0)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const numberFmt = (n) => Number(n||0).toLocaleString('en-US');
+
+    // safe render for stats
+    function renderStats(stats) {
+      if (!stats || stats.error) {
+        $('#analytics-area').innerHTML = `<div class="err-state">⚠️ Failed to load analytics. Verify owner token.</div>`;
+        return;
+      }
+      const generated = stats.generatedAt ? new Date(stats.generatedAt).toLocaleString() : 'just now';
+      $('#generated').textContent = `updated ${generated}`;
+
+      const maxRev = Math.max(1, ...(stats.daily || []).map(d => d.revenueCents || 0));
+      const bars = (stats.daily || []).map(d => {
+        const rev = d.revenueCents || 0;
+        const heightPercent = maxRev > 0 ? Math.round((rev / maxRev) * 100) : 0;
+        const dayLabel = new Date(d.day).toLocaleDateString('en-US',{month:'numeric',day:'numeric'});
+        return `<div class="bar-col" title="${moneyCents(rev)} · ${numberFmt(d.checks || 0)} checks">
+          <div class="v">${rev > 0 ? moneyCents(rev) : ''}</div>
+          <div class="bar" style="height:${heightPercent}%"></div>
+          <div class="d">${dayLabel}</div></div>`;
+      }).join('');
+
+      const html = `
+        <h2>💰 Revenue snapshot</h2>
+        <div class="grid">
+          ${cardItem('This month', moneyCents(stats.revenueCents?.month), numberFmt(stats.checks?.month)+' checks', true)}
+          ${cardItem('Last 24h', moneyCents(stats.revenueCents?.last24h), numberFmt(stats.checks?.last24h)+' checks', true)}
+          ${cardItem('All time', moneyCents(stats.revenueCents?.allTime), numberFmt(stats.checks?.allTime)+' checks', true)}
+          ${cardItem('Outstanding credit', moneyCents(stats.outstandingBalanceCents), 'unspent user balance (liability)', true)}
+        </div>
+        <h2>👥 Users & activity</h2>
+        <div class="grid">
+          ${cardItem('Total users', numberFmt(stats.users), `+${numberFmt(stats.newUsersMonth)} this month`)}
+          ${cardItem('Active (30d)', numberFmt(stats.activeUsersMonth), '≥1 check')}
+          ${cardItem('Deposits (all time)', moneyCents(stats.deposits?.allTimeCents), `${numberFmt(stats.deposits?.count)} deposits`, true)}
+          ${cardItem('Deposits (month)', moneyCents(stats.deposits?.monthCents), '', true)}
+        </div>
+        <h2>📦 Bulk jobs</h2>
+        <div class="grid">
+          ${cardItem('Jobs (month)', numberFmt(stats.bulkJobs?.month), `${numberFmt(stats.bulkJobs?.accountsMonth)} accounts`)}
+          ${cardItem('Jobs (all time)', numberFmt(stats.bulkJobs?.allTime), `${numberFmt(stats.bulkJobs?.accountsAllTime)} accounts`)}
+        </div>
+        <h2>📈 Revenue trend (last 14 days)</h2>
+        <div class="chart"><div class="bars">${bars || '<div class="sub">no daily data</div>'}</div></div>
+      `;
+      $('#analytics-area').innerHTML = html;
+    }
+
+    function cardItem(label, value, sub2, isMoney=false) {
+      return `<div class="card"><div class="label">${escapeHtml(label)}</div>
+        <div class="value ${isMoney ? 'money' : ''}">${value}</div>
+        ${sub2 ? `<div class="sub2">${escapeHtml(sub2)}</div>` : ''}</div>`;
+    }
+
+    function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+    // ---- API calls ----
+    async function loadDashboard() {
+      try {
+        const resp = await fetch('/api/admin/stats', { cache: 'no-store', credentials: 'same-origin' });
+        if (resp.status === 401 || resp.status === 403) {
+          $('#analytics-area').innerHTML = '<div class="err-state">🔒 Owner access required. Please log in as admin.</div>';
+          return;
+        }
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        renderStats(data);
+      } catch (err) {
+        console.error(err);
+        $('#analytics-area').innerHTML = `<div class="err-state">⚠️ Failed to load stats: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    // Grant balance
+    async function grantBalance() {
+      const email = $('#g-email').value.trim();
+      const amountUsd = parseFloat($('#g-amount').value);
+      const reason = $('#g-reason').value.trim();
+      const msgDiv = $('#g-msg');
+      msgDiv.className = 'grant-msg';
+      if (!email || isNaN(amountUsd) || amountUsd <= 0) {
+        msgDiv.className = 'grant-msg err';
+        msgDiv.textContent = '❌ Provide a valid email and positive amount.';
+        return;
+      }
+      if (!confirm(`Add ${moneyCents(Math.round(amountUsd*100))} to ${email}?`)) return;
+      const btn = $('#g-submit');
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/admin/grant-balance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, amountUsd, reason }),
+          cache: 'no-store'
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
+        msgDiv.className = 'grant-msg ok';
+        msgDiv.textContent = `✓ Added ${moneyCents(json.addedCents)} to ${json.email || email}. New balance: ${moneyCents(json.balanceCents)}.`;
+        $('#g-amount').value = '';
+        $('#g-reason').value = '';
+        loadDashboard(); // refresh liability stats
+      } catch (err) {
+        msgDiv.className = 'grant-msg err';
+        msgDiv.textContent = `✗ ${err.message}`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Grant BYO-proxy access pass (N days)
+    async function grantAccess() {
+      const email = $('#ac-email').value.trim();
+      const days = parseInt($('#ac-days').value, 10);
+      const msgDiv = $('#ac-msg'); msgDiv.className = 'grant-msg';
+      if (!email || !Number.isInteger(days) || days <= 0) {
+        msgDiv.className = 'grant-msg err';
+        msgDiv.textContent = '❌ Provide an email and a positive number of days.';
+        return;
+      }
+      if (!confirm(`Grant ${days} day(s) of BYO-proxy access to ${email}?`)) return;
+      const btn = $('#ac-submit'); btn.disabled = true;
+      try {
+        const res = await fetch('/api/admin/grant-access', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, days }), cache: 'no-store'
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
+        const until = json.expiresAt ? new Date(json.expiresAt).toLocaleString() : '';
+        msgDiv.className = 'grant-msg ok';
+        msgDiv.textContent = `✓ Granted ${json.days} day(s) to ${json.email}. Active until ${until}.`;
+        $('#ac-days').value = '';
+      } catch (err) {
+        msgDiv.className = 'grant-msg err';
+        msgDiv.textContent = `✗ ${err.message}`;
+      } finally { btn.disabled = false; }
+    }
+
+    // Test email
+    async function sendTestEmail() {
+      const to = $('#te-to').value.trim();
+      const m = $('#te-msg'); m.className = 'grant-msg'; m.textContent = 'Sending…';
+      const btn = $('#te-submit'); btn.disabled = true;
+      try {
+        const r = await fetch('/api/admin/test-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ to }), cache:'no-store' });
+        const j = await r.json().catch(()=>({}));
+        if (!r.ok) throw new Error(j.error || ('HTTP '+r.status));
+        m.className = 'grant-msg ok'; m.textContent = `✓ Test email sent to ${j.to}.`;
+      } catch (e) { m.className = 'grant-msg err'; m.textContent = '✗ ' + e.message; }
+      finally { btn.disabled = false; }
+    }
+    // Test purchase → email license key
+    async function testPurchase() {
+      const email = $('#tp-email').value.trim();
+      const m = $('#tp-msg'); m.className = 'grant-msg'; m.textContent = 'Sending key email…';
+      const btn = $('#tp-submit'); btn.disabled = true;
+      try {
+        const r = await fetch('/api/admin/test-purchase', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }), cache:'no-store' });
+        const j = await r.json().catch(()=>({}));
+        if (!r.ok) throw new Error(j.error || ('HTTP '+r.status));
+        m.className = 'grant-msg ok'; m.textContent = `✓ Key email sent to ${j.to}${j.keyMasked ? ' (key '+j.keyMasked+')' : ''}.`;
+      } catch (e) { m.className = 'grant-msg err'; m.textContent = '✗ ' + e.message; }
+      finally { btn.disabled = false; }
+    }
+    // Marketplace: grant/revoke trusted-seller badge
+    async function mpTrust() {
+      const email = $('#mp-email').value.trim();
+      const trusted = $('#mp-trust').value === '1';
+      const m = $('#mp-msg'); m.className = 'grant-msg';
+      if (!email) { m.className='grant-msg err'; m.textContent='❌ Enter an email.'; return; }
+      const btn = $('#mp-submit'); btn.disabled = true; m.textContent = 'Updating…';
+      try {
+        const r = await fetch('/api/admin/mp-trust', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, trusted }), cache:'no-store' });
+        const j = await r.json().catch(()=>({}));
+        if (!r.ok) throw new Error(j.error || ('HTTP '+r.status));
+        m.className='grant-msg ok'; m.textContent = `✓ ${trusted?'Granted':'Revoked'} trusted for ${j.email}${j.discordUsername?` (@${j.discordUsername})`:''}.`;
+      } catch (e) { m.className='grant-msg err'; m.textContent='✗ '+e.message; }
+      finally { btn.disabled = false; }
+    }
+    // Reset HWID
+    async function resetHwid() {
+      const email = $('#hw-email').value.trim();
+      const m = $('#hw-msg'); m.className = 'grant-msg';
+      if (!email) { m.className='grant-msg err'; m.textContent='❌ Enter an email.'; return; }
+      const btn = $('#hw-submit'); btn.disabled = true;
+      try {
+        const r = await fetch('/api/admin/reset-hwid', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email }), cache:'no-store' });
+        const j = await r.json().catch(()=>({}));
+        if (!r.ok) throw new Error(j.error || ('HTTP '+r.status));
+        m.className = 'grant-msg ok'; m.textContent = `✓ Device lock reset for ${j.email}. They can activate on a new PC.`;
+      } catch (e) { m.className='grant-msg err'; m.textContent='✗ '+e.message; }
+      finally { btn.disabled = false; }
+    }
+
+    // Proxy management
+    async function loadProxyConfig() {
+      try {
+        const resp = await fetch('/api/admin/proxy', { cache: 'no-store' });
+        if (!resp.ok) { $('#px-status').innerHTML = 'Unable to load proxy config.'; return; }
+        const data = await resp.json();
+        const p = data.proxy;
+        if (!p) { $('#px-status').innerHTML = 'No proxy configuration.'; return; }
+        const statusSpan = document.createElement('span');
+        statusSpan.className = p.useProxy ? 'on' : 'off';
+        statusSpan.textContent = p.useProxy ? 'ENABLED' : 'DISABLED';
+        $('#px-status').innerHTML = '';
+        $('#px-status').appendChild(document.createTextNode('Status: '));
+        $('#px-status').appendChild(statusSpan);
+        $('#px-status').appendChild(document.createTextNode(` · Gateway: ${escapeHtml(p.host)}:${escapeHtml(p.port)} · User: ${escapeHtml(p.user || '(none)')} · Pass: ${p.hasPass ? p.passMasked : '(none)'}`));
+        $('#px-user').value = p.user || '';
+        $('#px-host').value = p.host || '';
+        $('#px-port').value = p.port || '';
+        $('#px-enabled').checked = !!p.useProxy;
+      } catch(e) { $('#px-status').innerHTML = `Proxy error: ${e.message}`; }
+    }
+
+    async function saveProxySettings() {
+      const msgDiv = $('#px-msg');
+      msgDiv.className = 'grant-msg';
+      msgDiv.textContent = 'Testing proxy connection...';
+      const btn = $('#px-submit');
+      btn.disabled = true;
+      try {
+        const body = {
+          user: $('#px-user').value.trim(),
+          host: $('#px-host').value.trim(),
+          port: $('#px-port').value.trim(),
+          useProxy: $('#px-enabled').checked,
+        };
+        const newPass = $('#px-pass').value;
+        if (newPass) body.pass = newPass;
+        const res = await fetch('/api/admin/proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          cache: 'no-store'
+        });
+        const data = await res.json().catch(()=>({}));
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        msgDiv.className = 'grant-msg ok';
+        msgDiv.textContent = data.test?.ip
+          ? `✓ Proxy saved & verified. Exit IP: ${data.test.ip} (${data.test.ms}ms)`
+          : '✓ Proxy settings saved.';
+        $('#px-pass').value = '';
+        loadProxyConfig();
+      } catch(err) {
+        msgDiv.className = 'grant-msg err';
+        msgDiv.textContent = `✗ ${err.message}`;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ----- VWI logic (classification in /js/vwiBuckets.js) -----
+    // Used when the meta endpoint is unreachable so the sorter still groups into
+    // named buckets + Banned VWI instead of dumping everything into leftovers.
+    const VWI_META_FALLBACK = {
+      ranks: ['Champion', 'Diamond', 'Emerald', 'Plat'],
+      items: ['Glacier', 'Obsidian'],
+      namedItemBuckets: ['Silver GO4 Charm', 'Gold GO4 Charm', 'Obsidian', 'Chroma Streaks', 'Glacier'],
+      bannedVwi: { ranks: ['Champion', 'Diamond'], items: ['Chroma Streaks', 'Obsidian', 'Silver GO4 Charm', 'Gold GO4 Charm', 'Spellbound R4-C'] },
+    };
+    let vwiMeta = { items: [], ranks: [], namedItemBuckets: [], bannedVwi: { ranks: [], items: [] } };
+    async function loadVwiMeta() {
+      try {
+        const resp = await fetch('/api/admin/vwi/meta', { cache: 'no-store' });
+        if (resp.ok) vwiMeta = await resp.json();
+        else vwiMeta = VWI_META_FALLBACK;
+      } catch(e) { console.warn(e); vwiMeta = VWI_META_FALLBACK; }
+    }
+
+    // VWI account→bucket classification now lives in the shared module
+    // /js/vwiBuckets.js (window.VwiBuckets) so the browser sorter and the node
+    // tests stay in lockstep. These thin aliases keep renderVwiBuckets' per-
+    // platform split (PSN-only / Xbox-only / double) working.
+    const canLinkPsn = (line) => VwiBuckets.canLinkPsn(line);
+    const canLinkXbx = (line) => VwiBuckets.canLinkXbx(line);
+
+    function downloadLines(lines, fileName) {
+      if (!lines.length) return;
+      const blob = new Blob([lines.join('\n') + '\n'], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    }
+
+    function renderVwiBuckets(containerId, buckets, prefix) {
+      const container = $(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+      for (const [label, bucket] of Object.entries(buckets)) {
+        const div = document.createElement('div');
+        div.className = 'vwi-row' + (bucket.count ? '' : ' zero');
+        const leftSpan = document.createElement('span');
+        leftSpan.className = 'lbl';
+        leftSpan.textContent = label;
+        const rightDiv = document.createElement('div');
+        rightDiv.style.cssText = 'display:flex;align-items:center;gap:0.6rem';
+        const countSpan = document.createElement('span');
+        countSpan.className = 'cnt' + (bucket.count ? ' has' : '');
+        countSpan.textContent = `${bucket.count}×`;
+        rightDiv.appendChild(countSpan);
+
+        const safeName = label.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+        // Split this bucket by what console the account can still LINK, into
+        // three MUTUALLY EXCLUSIVE subsets so no account appears twice:
+        //   • double  = can link BOTH XBX and PSN
+        //   • psn     = PSN-linkable ONLY (not also Xbox → excludes doubles)
+        //   • xbx     = Xbox-linkable ONLY (not also PSN → excludes doubles)
+        const dbl = bucket.lines.filter(l => canLinkPsn(l) && canLinkXbx(l));
+        const psn = bucket.lines.filter(l => canLinkPsn(l) && !canLinkXbx(l));
+        const xbx = bucket.lines.filter(l => canLinkXbx(l) && !canLinkPsn(l));
+
+        const wrap = document.createElement('div');
+        wrap.className = 'vwi-ddwrap';
+        const dlBtn = document.createElement('button');
+        dlBtn.className = 'vwi-dl';
+        dlBtn.textContent = 'Download ▾';
+        dlBtn.disabled = !bucket.count;
+        const menu = document.createElement('div');
+        menu.className = 'vwi-ddmenu';
+
+        const addOpt = (text, lines, suffix) => {
+          const b = document.createElement('button');
+          b.disabled = !lines.length;
+          b.innerHTML = `<span>${text}</span><span class="n">${lines.length}×</span>`;
+          b.addEventListener('click', (e) => {
+            e.stopPropagation();
+            downloadLines(lines, `vwi-${prefix}-${safeName}${suffix}.txt`);
+            wrap.classList.remove('open');
+          });
+          menu.appendChild(b);
+        };
+        // Banned-VWI accounts ignore the linkable requirement (sold for cosmetics),
+        // so "All linkable" would be a lie — many have "Linkable: —". Label it "All".
+        addOpt(prefix === 'banned' ? '⬇ All' : '⬇ All linkable', bucket.lines, '');
+        const sep = document.createElement('div'); sep.className = 'ddsep'; menu.appendChild(sep);
+        addOpt('🔗 Double (XBX·PSN)', dbl, '-double');
+        addOpt('🎮 PSN linkable only', psn, '-psn');
+        addOpt('🟩 Xbox linkable only', xbx, '-xbox');
+
+        dlBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (dlBtn.disabled) return;
+          // Close any other open menu, then toggle this one.
+          document.querySelectorAll('.vwi-ddwrap.open').forEach(w => { if (w !== wrap) w.classList.remove('open'); });
+          wrap.classList.toggle('open');
+        });
+        wrap.appendChild(dlBtn);
+        wrap.appendChild(menu);
+        rightDiv.appendChild(wrap);
+
+        // Per-bucket "Push" → dry-run preview for just this bucket's accounts.
+        // Leftovers ('novwi') aren't VWI, so they get no push button.
+        if (prefix !== 'novwi') {
+          const pushBtn = document.createElement('button');
+          pushBtn.className = 'vwi-dl vwi-push';
+          pushBtn.textContent = '🛒 Push';
+          pushBtn.disabled = !bucket.count;
+          pushBtn.title = 'Preview, then push this bucket to SellAuth';
+          pushBtn.addEventListener('click', (e) => { e.stopPropagation(); vwiPushPreview(bucket.lines, label); });
+          rightDiv.appendChild(pushBtn);
+        }
+
+        div.appendChild(leftSpan);
+        div.appendChild(rightDiv);
+        container.appendChild(div);
+      }
+    }
+
+    // ── VWI → SellAuth push (dry-run preview, then confirm) ──────────────────
+    let vwiLastLines = [];                         // most-recently analyzed input lines (for "Push all")
+    let vwiPushLines = [];                         // lines staged for the open modal
+    const _vm = (id) => document.getElementById(id);
+    function vwiCloseModal() { _vm('vwi-modal').style.display = 'none'; vwiPushLines = []; }
+
+    async function vwiPushPreview(lines, title) {
+      lines = (lines || []).filter(Boolean);
+      if (!lines.length) return;
+      vwiPushLines = lines;
+      _vm('vwi-modal-title').textContent = `Push to SellAuth — ${title || 'all VWI'}`;
+      const body = _vm('vwi-modal-body');
+      body.innerHTML = '<div class="loading">Pricing &amp; matching products…</div>';
+      // Reset footer (a prior push may have hidden Confirm / relabeled Cancel).
+      const confirm = _vm('vwi-modal-confirm'), cancel = _vm('vwi-modal-cancel');
+      confirm.style.display = ''; confirm.disabled = true; confirm.textContent = 'Confirm push';
+      cancel.disabled = false; cancel.textContent = 'Cancel';
+      _vm('vwi-modal').style.display = 'flex';
+      let data;
+      try {
+        const resp = await fetch('/api/admin/vwi/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lines }) });
+        data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || ('HTTP ' + resp.status));
+      } catch (e) { body.innerHTML = `<div class="err-state">Preview failed: ${e.message}</div>`; return; }
+      const plan = data.plan || data;
+      const groups = (plan.groups || []).filter(g => g.count);
+      if (!groups.length) { body.innerHTML = '<div class="err-state">No pushable accounts in this selection.</div>'; return; }
+      let html = '';
+      for (const g of groups) {
+        const tag = g.exists ? '<span class="has">exists</span>' : '<span class="new">will CREATE</span>';
+        const price = g.pooled ? `pooled @ $${(g.flatPrice || 0).toFixed(2)}` : `~$${(g.value || 0).toFixed(2)}`;
+        html += `<div class="vwi-plan-row"><span>${g.productName}</span><span>${g.count}× · ${price} · ${tag}</span></div>`;
+      }
+      const t = plan.totals || {};
+      html += `<div class="vwi-plan-sum">${t.accounts || 0} accounts · est. $${(t.value || 0).toFixed(2)} · ${t.toCreate || 0} product(s) to create</div>`;
+      html += `<div style="margin-top:.5rem;color:var(--text-dim)">Nothing written yet — confirm to create products &amp; add priced variants.</div>`;
+      body.innerHTML = html;
+      confirm.disabled = false;
+    }
+
+    async function vwiDoPush() {
+      const lines = vwiPushLines.slice();
+      if (!lines.length) return;
+      const body = _vm('vwi-modal-body'), confirm = _vm('vwi-modal-confirm'), cancel = _vm('vwi-modal-cancel');
+      confirm.disabled = true; cancel.disabled = true;
+      body.innerHTML = '<div class="loading">Pushing… creating products &amp; variants. This can take a bit — don’t close.</div>';
+      let data;
+      try {
+        const resp = await fetch('/api/admin/vwi/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lines }) });
+        data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || ('HTTP ' + resp.status));
+      } catch (e) { body.innerHTML = `<div class="err-state">Push failed: ${e.message}</div>`; cancel.disabled = false; return; }
+      let html = '';
+      for (const r of (data.results || [])) {
+        const status = r.error ? `<span style="color:var(--neg)">ERROR: ${r.error}</span>`
+          : `${r.created ? 'created' : 'updated'} · ${r.added != null ? r.added : r.count} added`;
+        html += `<div class="vwi-plan-row"><span>${r.productName}</span><span>${status}</span></div>`;
+      }
+      const t = data.totals || {};
+      html += `<div class="vwi-plan-sum">${t.created || 0} created · ${t.accounts || 0} accounts · ${t.errors || 0} error(s)</div>`;
+      body.innerHTML = html;
+      confirm.style.display = 'none';
+      cancel.disabled = false; cancel.textContent = 'Close';
+    }
+
+    (function wireVwiModal() {
+      const x = _vm('vwi-modal-x'), cancel = _vm('vwi-modal-cancel'), confirm = _vm('vwi-modal-confirm'), all = _vm('vwi-push-all');
+      if (x) x.addEventListener('click', vwiCloseModal);
+      if (cancel) cancel.addEventListener('click', vwiCloseModal);
+      if (confirm) confirm.addEventListener('click', vwiDoPush);
+      if (all) all.addEventListener('click', () => vwiPushPreview(vwiLastLines, 'all VWI'));
+    })();
+
+    function runVwiAnalysis(textContent) {
+      const lines = textContent.split(/\r?\n/);
+      vwiLastLines = lines;
+      const msgDiv = $('#vwi-msg');
+      msgDiv.className = 'grant-msg';
+      const { rankBuckets, itemBuckets, bannedBucket, leftovers, stats } = VwiBuckets.bucketAccounts(lines, vwiMeta);
+      const { vwiTotal, valid, excluded, noLvlCount, duplicates } = stats;
+      if (valid === 0) {
+        msgDiv.className = 'grant-msg err';
+        msgDiv.textContent = '❌ No valid result lines found (expected "| User: " format).';
+        $('#vwi-results').style.display = 'none';
+        return;
+      }
+      renderVwiBuckets('vwi-ranks', rankBuckets, 'rank');
+      renderVwiBuckets('vwi-items', itemBuckets, 'item');
+      renderVwiBuckets('vwi-banned', { 'Banned VWI': bannedBucket }, 'banned');
+      renderVwiBuckets('vwi-leftovers', leftovers, 'novwi');
+      const sortedCount = valid - excluded;
+      const nonVwiCount = sortedCount - vwiTotal;
+      $('#vwi-total').innerHTML = `${vwiTotal.toLocaleString()} VWI accounts · ${nonVwiCount.toLocaleString()} non-VWI · ${excluded.toLocaleString()} skipped (banned/unlinkable)${duplicates ? ` · ${duplicates.toLocaleString()} duplicate(s) removed` : ''}${noLvlCount ? ` · ${noLvlCount} missing level` : ''}<br>📄 ${valid.toLocaleString()} unique valid account(s). Rank beats item; banned-but-valuable go to Banned VWI.`;
+      $('#vwi-results').style.display = 'block';
+      msgDiv.className = 'grant-msg ok';
+      msgDiv.textContent = `✓ Analysis complete. ${vwiTotal} VWI accounts found.`;
+    }
+
+    async function handleVwi() {
+      // Make sure the wanted rank/item buckets are loaded before analysing —
+      // otherwise every account falls through to "leftovers" and it looks broken.
+      if (!vwiMeta.ranks || !vwiMeta.ranks.length || !vwiMeta.items || !vwiMeta.items.length) {
+        await loadVwiMeta();
+      }
+      const fileInput = $('#vwi-file');
+      const pasteArea = $('#vwi-paste').value;
+      const msgDiv = $('#vwi-msg');
+      if (fileInput.files && fileInput.files.length > 0) {
+        try {
+          const text = await fileInput.files[0].text();
+          if (text.trim()) runVwiAnalysis(text);
+          else throw new Error('file empty');
+        } catch(e) { msgDiv.className = 'grant-msg err'; msgDiv.textContent = `File error: ${e.message}`; }
+      } else if (pasteArea.trim()) {
+        runVwiAnalysis(pasteArea);
+      } else {
+        msgDiv.className = 'grant-msg err';
+        msgDiv.textContent = 'Select a file or paste content.';
+      }
+    }
+
+    // event binding
+    $('#refreshBtn').addEventListener('click', loadDashboard);
+    $('#g-submit').addEventListener('click', grantBalance);
+    $('#ac-submit').addEventListener('click', grantAccess);
+    $('#ac-days').addEventListener('keypress', (e) => { if (e.key === 'Enter') grantAccess(); });
+    $('#te-submit').addEventListener('click', sendTestEmail);
+    $('#tp-submit').addEventListener('click', testPurchase);
+    $('#mp-submit').addEventListener('click', mpTrust);
+    $('#mp-email').addEventListener('keypress', (e) => { if (e.key === 'Enter') mpTrust(); });
+    $('#tp-email').addEventListener('keypress', (e) => { if (e.key === 'Enter') testPurchase(); });
+    $('#hw-submit').addEventListener('click', resetHwid);
+    $('#px-submit').addEventListener('click', saveProxySettings);
+    $('#vwi-analyze').addEventListener('click', handleVwi);
+    // Close any open per-bucket Download dropdown when clicking elsewhere.
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.vwi-ddwrap.open').forEach(w => w.classList.remove('open'));
+    });
+    // allow enter shortcuts
+    $('#g-amount').addEventListener('keypress', (e) => { if (e.key === 'Enter') grantBalance(); });
+    $('#g-reason').addEventListener('keypress', (e) => { if (e.key === 'Enter') grantBalance(); });
+
+    // ── Mass-invite Discord OAuths ──────────────────────────────────────────
+    async function loadOauthSummary() {
+      const sel = $('#oauth-guild');
+      const total = $('#oauth-total');
+      const btn = $('#oauth-invite-btn');
+      try {
+        const r = await fetch('/api/admin/oauths/summary', { cache: 'no-store' });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+        total.textContent = Number(d.total || 0).toLocaleString();
+        const guilds = d.guilds || [];
+        if (!guilds.length) {
+          sel.innerHTML = '<option value="">— bot is not in any guild —</option>';
+          btn.disabled = true;
+          return;
+        }
+        sel.innerHTML = guilds.map(g =>
+          `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)} — ${Number(g.memberCount || 0).toLocaleString()} members</option>`
+        ).join('');
+        btn.disabled = !Number(d.total);
+      } catch (e) {
+        sel.innerHTML = `<option value="">— failed to load: ${escapeHtml(e.message)} —</option>`;
+        btn.disabled = true;
+      }
+    }
+    async function runMassInvite() {
+      const guildId = $('#oauth-guild').value;
+      const msg = $('#oauth-msg'); const out = $('#oauth-result'); const btn = $('#oauth-invite-btn');
+      msg.className = 'grant-msg'; msg.textContent = ''; out.style.display = 'none';
+      if (!guildId) { msg.className = 'grant-msg err'; msg.textContent = 'Pick a guild first.'; return; }
+      if (!confirm(`Mass-invite EVERY saved OAuth into this guild?\nThis sends one guilds.join API call per user (throttled).`)) return;
+      btn.disabled = true; msg.textContent = 'Refreshing tokens + inviting… this may take a minute.';
+      try {
+        const r = await fetch('/api/admin/oauths/mass-invite', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guildId }), cache: 'no-store',
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+        const c = d.counts || {};
+        const summary = [
+          `✓ Done — guild: ${d.guildName || guildId}`,
+          `${d.totalSelected} OAuths selected · ${d.refreshed} fresh tokens`,
+          `added: ${c.added || 0} · already-in: ${c['already-in'] || 0} · errors: ${(d.totalSelected - (c.added || 0) - (c['already-in'] || 0))}`,
+        ].join('\n');
+        msg.className = 'grant-msg ok'; msg.textContent = '✓ Mass invite finished.';
+        out.style.display = 'block'; out.textContent = summary + '\n\n' + JSON.stringify({ counts: c, refreshErrors: d.refreshErrors }, null, 2);
+      } catch (e) {
+        msg.className = 'grant-msg err'; msg.textContent = '✗ ' + e.message;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+    $('#oauth-invite-btn').addEventListener('click', runMassInvite);
+
+    // ── Pricing editor ──────────────────────────────────────────────────────
+    async function loadPricing() {
+      const msg = document.getElementById('pricing-msg');
+      const editor = document.getElementById('pricing-editor');
+      const effective = document.getElementById('pricing-effective');
+      if (!editor) return;
+      msg.className = 'grant-msg'; msg.textContent = '';
+      try {
+        const r = await fetch('/api/admin/pricing', { cache: 'no-store' });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+        editor.value = JSON.stringify(j.overrides || {}, null, 2);
+        editor.dataset.defaults = JSON.stringify(j.defaults || {}, null, 2);
+        effective.textContent = JSON.stringify(j.effective || {}, null, 2);
+        msg.className = 'grant-msg';
+        msg.textContent = 'Loaded (file: ' + (j.file || '?') + ')';
+      } catch (e) {
+        msg.className = 'grant-msg err';
+        msg.textContent = 'Load failed: ' + e.message;
+      }
+    }
+    async function savePricing() {
+      const msg = document.getElementById('pricing-msg');
+      const editor = document.getElementById('pricing-editor');
+      let parsed;
+      try { parsed = JSON.parse(editor.value || '{}'); }
+      catch (e) { msg.className = 'grant-msg err'; msg.textContent = 'JSON parse error: ' + e.message; return; }
+      msg.className = 'grant-msg'; msg.textContent = 'Saving…';
+      try {
+        const r = await fetch('/api/admin/pricing', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ overrides: parsed }),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+        msg.className = 'grant-msg ok'; msg.textContent = '✓ Saved — active immediately';
+        loadPricing();      // refresh the effective view
+      } catch (e) { msg.className = 'grant-msg err'; msg.textContent = 'Save failed: ' + e.message; }
+    }
+    const pReset = document.getElementById('pricing-reset-defaults');
+    if (pReset) pReset.addEventListener('click', () => {
+      const editor = document.getElementById('pricing-editor');
+      const d = editor.dataset.defaults ? JSON.parse(editor.dataset.defaults) : {};
+      editor.value = JSON.stringify(d, null, 2);
+      const msg = document.getElementById('pricing-msg');
+      msg.className = 'grant-msg'; msg.textContent = 'Defaults loaded into editor (not saved yet).';
+    });
+    const pClear = document.getElementById('pricing-clear');
+    if (pClear) pClear.addEventListener('click', () => {
+      document.getElementById('pricing-editor').value = '{}';
+      const msg = document.getElementById('pricing-msg');
+      msg.className = 'grant-msg'; msg.textContent = 'Cleared — press Save to remove all overrides.';
+    });
+    const pSave = document.getElementById('pricing-save');
+    if (pSave) pSave.addEventListener('click', savePricing);
+
+    // initializers
+    loadProxyConfig();
+    loadVwiMeta();
+    loadDashboard();
+    loadOauthSummary();
+    loadPricing();
+  })();
+</script>
+</body>
+</html>
